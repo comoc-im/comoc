@@ -1,4 +1,4 @@
-const baseUrl = "//localhost:9999"
+import {signalerServerBaseUrl} from "@/config";
 
 interface PeerInfo {
     description: RTCSessionDescription;
@@ -6,7 +6,7 @@ interface PeerInfo {
 }
 
 export function registerDescription (des: RTCSessionDescription, username: string) {
-    return fetch(`${baseUrl}/post/description?username=${username}`,
+    return fetch(`${signalerServerBaseUrl}/post/description?username=${username}`,
         {
             method: 'POST',
             mode: 'cors',
@@ -19,7 +19,7 @@ export function registerDescription (des: RTCSessionDescription, username: strin
 }
 
 export function registerCandidate (candidate: RTCIceCandidate, username: string) {
-    return fetch(`${baseUrl}/post/candidate?username=${username}`,
+    return fetch(`${signalerServerBaseUrl}/post/candidate?username=${username}`,
         {
             method: 'POST',
             mode: 'cors',
@@ -32,7 +32,7 @@ export function registerCandidate (candidate: RTCIceCandidate, username: string)
 }
 
 function readPeerInfo (username: string) {
-    return fetch(`${baseUrl}/read?username=${username}`, {
+    return fetch(`${signalerServerBaseUrl}/read?username=${username}`, {
         mode: "cors"
     }).then(res => res.json())
 }

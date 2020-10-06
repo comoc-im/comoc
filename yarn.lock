@@ -4559,6 +4559,11 @@ hash-sum@^2.0.0:
   resolved "https://registry.npm.taobao.org/hash-sum/download/hash-sum-2.0.0.tgz#81d01bb5de8ea4a214ad5d6ead1b523460b0b45a"
   integrity sha1-gdAbtd6OpKIUrV1urRtSNGCwtFo=
 
+hash-wasm@^4.2.2:
+  version "4.2.2"
+  resolved "https://registry.npmjs.org/hash-wasm/-/hash-wasm-4.2.2.tgz#b4bd0979d52a3cce2bbce2fb5ede8450b2f84b63"
+  integrity sha512-tjaL6opF18/bkrkDZyjxSatmggUa/LPZQO7LiDEInGgoheish/pZrqYSbHsgtKGVkVKqjEKxBerxvZsodlpD2Q==
+
 hash.js@^1.0.0, hash.js@^1.0.3:
   version "1.1.7"
   resolved "https://registry.npm.taobao.org/hash.js/download/hash.js-1.1.7.tgz#0babca538e8d4ee4a0f8988d68866537a003cf42"

@@ -4,5 +4,5 @@ const Comoc = () => import(/* webpackChunkName: "about", prefetch: true */ '../v
 export default [
     {path: '/sign_in', name: 'signIn', component: signIn},
     {path: '/comoc', name: 'comoc', component: Comoc},
-    {path: '/', name: 'catchAll', redirect: {name: 'comoc'}}
+    {path: '/:pathMatch(.*)*', name: 'catchAll', redirect: {name: 'signIn'}}
 ]

@@ -1,4 +1,4 @@
-import {argon2id} from "hash-wasm";
+import {argon2id, argon2Verify} from "hash-wasm";
 
 
 export async function generateKeyPair (): Promise<CryptoKeyPair> {
@@ -31,5 +31,13 @@ export async function derivePasswordKey (password: string): Promise<string> {
         memorySize: 512, // use 512KB memory
         hashLength: 32, // output size = 32 bytes
         outputType: 'encoded', // return standard encoded string containing parameters needed to verify the key
+    })
+}
+
+
+export async function verifyPassword (password: string, hash: string): Promise<boolean> {
+    return argon2Verify({
+        password,
+        hash
     })
 }

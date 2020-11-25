@@ -1,7 +1,7 @@
 <template>
     <div class="login">
         <div class="auth-lock">
-            <p v-if="isSignedIn">already signed in, jumping now...</p>
+            <p v-if="$store.getters.isSignedIn">already signed in, jumping now...</p>
             <form v-else @submit.prevent="submit">
                 <label>
                     Username
@@ -27,22 +27,21 @@
 </template>
 <script lang="ts">
     import {defineComponent, ref} from 'vue'
-    import {useStore} from "vuex";
     import User from "@/db/user";
+    import {mutations} from "@/store/mutations";
+    import store from "@/store";
+    import {derivePasswordKey} from "@/db/user/crypto";
 
     export default defineComponent({
         name: 'login',
         setup () {
             console.log('setup')
-            const store = useStore()
             const username = ref('')
             const password = ref('')
 
-            const isSignedIn = ref(!!store.state.user.id)
             return {
                 username,
                 password,
-                isSignedIn
             }
         },
         methods: {
@@ -51,7 +50,8 @@
                     return 'username and password necessary'
                 }
 
-                const newUser = new User(this.username, this.password)
+                const passwordHash = await derivePasswordKey(this.password)
+                const newUser = new User(this.username, passwordHash)
                 await newUser.save()
                 console.log(newUser)
             },
@@ -65,7 +65,10 @@
                     return console.log('user not found')
                 }
 
-                console.log('user found', user)
+                console.log('user found', user, this)
+                store.commit(mutations.SET_CURRENT_USER, user)
+
+                this.$router.replace({name: 'comoc'})
             }
         }
     })

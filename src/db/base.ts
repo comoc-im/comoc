@@ -1,42 +1,30 @@
-import {dbName, dbVersion} from "@/config";
-import {initUser} from "@/db/user";
-
-/**
- * Open and init indexedDB globally
- */
-const dbReady: Promise<IDBDatabase> = new Promise(function (resolve, reject) {
-
-    const request = indexedDB.open(dbName, dbVersion)
-
-    request.onerror = function (err) {
-        console.error('Unable to open database.', err)
-        reject()
-    }
-
-    request.onsuccess = function () {
-        const db = request.result
-        console.log('db opened')
-        resolve(db)
-    }
-
-    request.addEventListener('upgradeneeded', function () {
-        const db = request.result
-        initUser(db)
-    })
-
-})
-
-
 /**
  * Model Base Class
  * TODO:
  *  data security: encryption before persistence.
  */
 export default abstract class Model<T> {
-    #storeName: string
 
-    constructor (storeName: string) {
-        this.#storeName = storeName
+    protected static db: IDBDatabase
+    private readonly storeName: string
+
+    protected constructor (storeName: string) {
+        this.storeName = storeName
+    }
+
+    static init (dbReady: IDBDatabase) {
+        this.db = dbReady
+    }
+
+    protected static async getAll<T> (storeName: string): Promise<T[]> {
+
+        return new Promise(resolve => {
+            const trans = this.db.transaction([storeName], 'readonly')
+            const req = trans.objectStore(storeName).getAll()
+
+            req.onsuccess = () => resolve(req.result)
+        })
+
     }
 
 
@@ -49,12 +37,10 @@ export default abstract class Model<T> {
      */
     protected async getAllByIndex (index: string, query?: IDBValidKey | IDBKeyRange | null, count?: number): Promise<T[]> {
 
-        const db = await dbReady
-
         return new Promise(resolve => {
 
-            const trans = db.transaction([this.#storeName], 'readonly')
-            const dbIndex = trans.objectStore(this.#storeName).index(index)
+            const trans = Model.db.transaction([this.storeName], 'readonly')
+            const dbIndex = trans.objectStore(this.storeName).index(index)
             const req = dbIndex.getAll(query, count)
 
             req.onsuccess = () => resolve(req.result)
@@ -70,16 +56,14 @@ export default abstract class Model<T> {
      */
     protected async put (): Promise<string> {
 
-        const db = await dbReady
-
         return new Promise((resolve, reject) => {
 
-            const trans = db.transaction([this.#storeName], 'readwrite')
-            const addReq = trans.objectStore(this.#storeName).put(this)
+            const trans = Model.db.transaction([this.storeName], 'readwrite')
+            const addReq = trans.objectStore(this.storeName).put(this)
 
-            addReq.onerror = function (e) {
+            addReq.onerror = function (err: Event) {
                 console.log('error storing data')
-                console.error(e)
+                console.error(err)
                 reject()
             }
 

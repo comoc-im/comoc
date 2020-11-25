@@ -1,0 +1,26 @@
+@charset "UTF-8";
+
+::-webkit-scrollbar-track-piece {
+    background-color: translate;
+    border-radius: 0;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    height: 50px;
+    background-color: gray;
+    outline: 2px solid white;
+    outline-offset: -2px;
+    border: 2px solid white;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    height: 50px;
+    background-color: gray;
+    border-radius: 4px;
+}

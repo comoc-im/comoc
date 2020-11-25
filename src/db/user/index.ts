@@ -2,25 +2,27 @@ import {USER_STORE_NAME} from "@/db/store-names";
 import {derivePasswordKey, verifyPassword} from "@/db/user/crypto";
 import Model from "@/db/base";
 
-/**
- * Init User object store
- * @param db
- */
-export function initUser (db: IDBDatabase): void {
-    const userStore = db.createObjectStore(USER_STORE_NAME, {autoIncrement: true})
-    userStore.createIndex('username', 'username', {unique: false})
-    userStore.createIndex('publicKey', 'publicKey', {unique: true})
-}
+
 
 export default class User extends Model<User> {
 
     username = '';
     publicKey: CryptoKey | null = null;
     protected passwordHash = '';
-    #getPasswordHash: Promise<string>
+
+    /**
+     * Init User object store
+     * @param db
+     */
+    static init (db: IDBDatabase): void {
+        const userStore = db.createObjectStore(USER_STORE_NAME, {autoIncrement: true})
+        userStore.createIndex('username', 'username', {unique: false})
+        userStore.createIndex('publicKey', 'publicKey', {unique: true})
+    }
 
     static async find (username: string, password: string): Promise<User | null> {
-        const user = new User(username, password)
+        const passwordHash = await derivePasswordKey(password)
+        const user = new User(username, passwordHash)
 
         const users = await user.getAllByIndex('username', username)
         if (users.length === 0) {
@@ -38,16 +40,18 @@ export default class User extends Model<User> {
         return null
     }
 
+    static async findAll(): Promise<User[]> {
+        return super.getAll<User>(USER_STORE_NAME)
+    }
 
-    constructor (username: string, password: string) {
+    constructor (username: string, passwordHash: string) {
         super(USER_STORE_NAME)
 
         this.username = username
-        this.#getPasswordHash = derivePasswordKey(password)
+        this.passwordHash = passwordHash
     }
 
     async save () {
-        this.passwordHash = await this.#getPasswordHash
         await this.put()
     }
 

@@ -1,186 +1,200 @@
 <template>
     <div class="comoc-web">
+        <div class="contacts">
+            <div v-for="contact in contacts"
+                 :key="contact.username"
+                 :title="'chat with ' + contact.username"
+                 class="contact"
+                 @click="selectContact(contact)">{{ contact.username }}
+            </div>
+        </div>
+
+        <div class="chat">
+            <div class="chat-view">
+                <div v-for="msg in msgList" :key="msg" class="msg">{{ msg }}</div>
+            </div>
+            <div class="chat-input">
+                <textarea v-model="inputText" class="chat-textarea"></textarea>
+                <button class="send-btn" type="button" @click="send">Send</button>
+            </div>
+        </div>
     </div>
 </template>
 <script lang="ts">
-    import {defineComponent} from 'vue'
-    import {listenPeerInfo, registerCandidate, registerDescription} from './signaler'
-    import {useRoute} from 'vue-router'
-    import {watch} from '@vue/runtime-core'
-
-    const stunServers = [
-        'stun:stun1.l.google.com:19302',
-        'stun:stun2.l.google.com:19302',
-        'stun:stun3.l.google.com:19302',
-        'stun:stun4.l.google.com:19302',
-        'stun:23.21.150.121',
-        'stun:stun01.sipphone.com',
-        'stun:stun.ekiga.net',
-        'stun:stun.fwdnet.net',
-        'stun:stun.ideasip.com',
-        'stun:stun.iptel.org',
-        'stun:stun.rixtelecom.se',
-        'stun:stun.schlund.de',
-        'stun:stunserver.org',
-        'stun:stun.softjoys.com',
-        'stun:stun.voiparound.com',
-        'stun:stun.voipbuster.com',
-        'stun:stun.voipstunt.com',
-        'stun:stun.voxgratia.org',
-        'stun:stun.xten.com'
-    ]
+    import {computed, defineComponent, reactive, ref} from 'vue'
+    import User from "@/db/user";
+    import Socket from "@/network/signaler/websocket";
+    import store from "@/store";
+    import {WebRTCChannel} from "@/network/channel/webrtc";
+    import {Channel} from "@/network/channel";
+    import Message, {MessageType} from "@/db/message";
 
     export default defineComponent({
         name: 'Comoc-Web',
-        setup() {
-            const route = useRoute()
-            const config = {
-                iceServers: stunServers.map(url => ({urls: url})).slice(0, 2)
+        async setup () {
+            const signaler = new Socket(store.state.currentUser.username)
+            const contacts = await User.findAll().then((users) => users.filter(user => user.username !== store.state.currentUser.username))
+            const channelCache = new Map<string, Channel>()
+
+            const activeContactID = ref<string>('')
+            const inputText = ref<string>('')
+            const msgList = reactive<Message[]>([])
+            const currentContact = computed<User | undefined>(() => contacts.find((c) => c.username === activeContactID.value))
+
+            function selectContact (contact: User) {
+                activeContactID.value = contact.username
+
+                let channel = channelCache.get(contact.username)
+                if (!channel) {
+                    channel = new WebRTCChannel(signaler, contact.username)
+                    channelCache.set(contact.username, channel)
+                }
+
+                channel.onMessage((msg) => {
+                    msgList.push(msg)
+                })
             }
 
-            watch(
-                () => route.query,
-                async query => {
-                    const username = query.username as string
-                    if (!username) {
-                        return
-                    }
-                    const targetUsername = username === 'Alice' ? 'Bob' : 'Alice'
-                    const polite = username === 'Alice'
+            function send () {
 
-                    console.log('setup', username)
-                    const pc = new RTCPeerConnection(config);
-                    (window as any).pc = pc
+                let channel = channelCache.get(activeContactID.value)
 
-                    let makingOffer = false
-
-                    pc.onnegotiationneeded = async () => {
-                        try {
-                            makingOffer = true
-                            // eslint-disable-next-line
-                            // @ts-ignore
-                            await pc.setLocalDescription()
-                            console.log('send description', pc.localDescription?.type)
-                            registerDescription(pc.localDescription as RTCSessionDescription, username)
-                        } catch (err) {
-                            console.error(err)
-                        } finally {
-                            makingOffer = false
-                        }
-                    }
-
-                    pc.onicecandidate = ({candidate}) => {
-                        console.log('send candidate', candidate?.type)
-                        registerCandidate(candidate as RTCIceCandidate, username)
-                    }
-
-                    let dc: RTCDataChannel
-                    if (polite) {
-                        pc.ondatachannel = function ({channel}) {
-                            dc = channel
-                            dc.onmessage = function (event) {
-                                console.log('received: ' + event.data)
-                                setTimeout(() => {
-                                    dc.send(String(Number(event.data) + 1))
-                                }, 1000)
-                            }
-
-                            dc.onopen = function () {
-                                console.log('datachannel open')
-                            }
-
-                            dc.onclose = function () {
-                                console.log('datachannel close')
-                            }
-
-                            dc.onerror = function () {
-                                console.log('datachannel close')
-                            };
-
-                            (window as any).dc = dc;
-                            (window as any).send = function () {
-                                dc.send(String(1))
-                            }
-                        }
-                    } else {
-                        dc = pc.createDataChannel('Comoc IM')
-                        dc.onmessage = function (event) {
-                            console.log('received: ' + event.data)
-                            setTimeout(() => {
-                                dc.send(String(Number(event.data) + 1))
-                            }, 1000)
-                        }
-
-                        dc.onopen = function () {
-                            console.log('datachannel open')
-                        }
-
-                        dc.onclose = function () {
-                            console.log('datachannel close')
-                        }
-
-                        dc.onerror = function () {
-                            console.log('datachannel close')
-                        };
-
-                        (window as any).dc = dc;
-                        (window as any).send = function () {
-                            dc.send(String(1))
-                        }
-                    }
-
-                    let ignoreOffer = false
-                    listenPeerInfo(targetUsername, async ({description, candidates}) => {
-                        console.info(pc.connectionState, dc?.readyState)
-                        try {
-                            if (description) {
-                                console.log('receive description', description?.type)
-                                const offerCollision = (description.type === 'offer') &&
-                                    (makingOffer || pc.signalingState !== 'stable')
-
-                                ignoreOffer = !polite && offerCollision
-                                if (ignoreOffer) {
-                                    return
-                                }
-
-                                await pc.setRemoteDescription(description)
-                                if (description.type === 'offer') {
-                                    // eslint-disable-next-line
-                                    // @ts-ignore
-                                    await pc.setLocalDescription()
-                                    registerDescription(pc.localDescription as RTCSessionDescription, username)
-                                }
-                            }
-
-                            if (candidates) {
-                                console.log('receive candidates', candidates.map((type) => type))
-                                try {
-                                    for (const candidate of candidates) {
-                                        await pc.addIceCandidate(candidate)
-                                    }
-                                } catch (err) {
-                                    if (!ignoreOffer) {
-                                        throw err
-                                    }
-                                }
-                            }
-                        } catch (err) {
-                            console.error(err)
-                        }
-                    })
-
+                if (!channel) {
+                    console.warn('send without channel')
+                    return
                 }
-            )
+
+                if (!currentContact.value) {
+                    console.warn('send witout currentContract')
+                    return
+                }
+
+                channel.send(
+                    new Message(MessageType.Text, inputText.value, store.state.currentUser.username, currentContact.value.username)
+                );
+
+                inputText.value = ''
+
+            }
+
+            return {
+                contacts,
+                activeContactID,
+                inputText,
+                msgList,
+                selectContact,
+                send,
+            }
         }
     })
 </script>
 <style lang="scss">
-    #app {
-        font-family: Avenir, Helvetica, Arial, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        color: #2c3e50;
+    @import "../styles/base/variable";
+
+    .comoc-web {
+        display: flex;
+        height: 100vh;
+
+        .contacts {
+            min-width: 15vw;
+            max-width: 300px;
+
+            .contact {
+                padding: 12px;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: lightblue;
+                }
+
+                &:active,
+                &.active {
+                    background-color: lightskyblue;
+                }
+
+                ~ .contact {
+                    border-top: $border-color;
+                }
+            }
+        }
+
+        .chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+
+            .chat-view {
+                flex: 1;
+                overflow: auto;
+                padding: 20px;
+                border-left: 1px solid $border-color;
+                background-color: #f1f1f1;
+
+                &:empty:before {
+                    content: '暂无消息';
+                    display: block;
+                    text-align: center;
+                    color: lightgrey;
+                    user-select: none;
+                }
+
+                .msg {
+                    float: left;
+                    padding: 1em;
+                    border: 1px dotted $border-color;
+                    border-radius: 6px;
+                    clear: both;
+
+                    &:before {
+                        content: attr(data-owner);
+                        position: absolute;
+                        bottom: -100%;
+                        left: 0;
+                        color: lightgrey;
+                        user-select: none;
+                    }
+
+                    &.self {
+                        float: right
+                    }
+                }
+            }
+
+            .chat-input {
+                display: flex;
+                height: 150px;
+
+                .chat-textarea {
+                    flex: 1;
+                    padding: 1em .5em;
+                    line-height: 1.6em;
+                    resize: none;
+                    border-top: 1px solid $border-color;
+                    border-left: 1px solid $border-color;
+                    border-right: none;
+                    border-bottom: none;
+                    outline: none;
+
+                    &:focus {
+                        box-shadow: 0 0 0 2px deepskyblue;
+                    }
+                }
+
+                .send-btn {
+                    padding: 0 20px;
+                    border: none;
+                    appearance: none;
+                    outline: none;
+                    cursor: pointer;
+                    letter-spacing: 1px;
+                    background-color: deepskyblue;
+                    color: white;
+
+                    &:hover {
+                        background-color: darken(deepskyblue, 5%);
+                    }
+                }
+            }
+        }
     }
-
-
 </style>

@@ -47,7 +47,7 @@ export default class Socket implements Signaler {
     }
 
 
-    async onMessage (func: (msg: SignalingMessage) => unknown) {
+    async onMessage (func: (msg: SignalingMessage) => unknown): Promise<void> {
 
         const webSocket = await this.webSocketReady
 
@@ -59,7 +59,7 @@ export default class Socket implements Signaler {
     }
 
 
-    async send (data: SignalingMessage) {
+    async send (data: SignalingMessage): Promise<void> {
 
         const webSocket = await this.webSocketReady
 

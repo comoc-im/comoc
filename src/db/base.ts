@@ -12,8 +12,10 @@ export default abstract class Model<T> {
         this.storeName = storeName
     }
 
-    static init (dbReady: IDBDatabase) {
-        this.db = dbReady
+    protected static init (db: IDBDatabase): void {
+        if (db instanceof IDBDatabase && this.db !== db) {
+            this.db = db
+        }
     }
 
     protected static async getAll<T> (storeName: string): Promise<T[]> {

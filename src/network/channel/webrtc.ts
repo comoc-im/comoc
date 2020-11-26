@@ -165,7 +165,7 @@ export class WebRTCChannel implements Channel {
     }
 
 
-    async send (msg: Message) {
+    async send (msg: Message): Promise<void> {
 
         const channel = await this.dataChannelPromise
 
@@ -175,7 +175,7 @@ export class WebRTCChannel implements Channel {
     }
 
 
-    async onMessage (func: (msg: Message) => unknown) {
+    async onMessage (func: (msg: Message) => unknown): Promise<void> {
 
         const channel = await this.dataChannelPromise
 

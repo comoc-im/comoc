@@ -13,7 +13,9 @@ export default class Message extends Model<Message> {
     type: MessageType
     payload: string
 
-    static init (db: IDBDatabase) {
+    static init (db: IDBDatabase): void {
+        super.init(db)
+
         const store = db.createObjectStore(MESSAGE_STORE_NAME, {autoIncrement: true})
         store.createIndex('id', 'id', {unique: true})
         store.createIndex('from', 'from', {unique: false})

@@ -12,8 +12,8 @@ export default abstract class Model<T> {
         this.storeName = storeName
     }
 
-    protected static init (db: IDBDatabase): void {
-        if (db instanceof IDBDatabase && this.db !== db) {
+    static init (db: IDBDatabase): void {
+        if (this.db !== db) {
             this.db = db
         }
     }

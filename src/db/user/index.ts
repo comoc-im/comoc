@@ -15,8 +15,6 @@ export default class User extends Model<User> {
      * @param db
      */
     static init (db: IDBDatabase): void {
-        super.init(db)
-
         const userStore = db.createObjectStore(USER_STORE_NAME, {autoIncrement: true})
         userStore.createIndex('username', 'username', {unique: false})
         userStore.createIndex('publicKey', 'publicKey', {unique: true})

@@ -4,6 +4,7 @@
             <div v-for="contact in contacts"
                  :key="contact.username"
                  :title="'chat with ' + contact.username"
+                 :class="{active: activeContactID === contact.username}"
                  class="contact"
                  @click="selectContact(contact)">{{ contact.username }}
             </div>
@@ -11,7 +12,7 @@
 
         <div class="chat">
             <div class="chat-view">
-                <div v-for="msg in msgList" :key="msg" class="msg">{{ msg }}</div>
+                <div v-for="msg in msgList" :key="msg" class="msg">{{ msg.payload }}</div>
             </div>
             <div class="chat-input">
                 <textarea v-model="inputText" class="chat-textarea"></textarea>
@@ -31,15 +32,19 @@
 
     export default defineComponent({
         name: 'Comoc-Web',
-        async setup () {
+        setup () {
             const signaler = new Socket(store.state.currentUser.username)
-            const contacts = await User.findAll().then((users) => users.filter(user => user.username !== store.state.currentUser.username))
+            let contacts = ref<User[]>([]);
+            User.findAll().then((users) => users.filter(user => user.username !== store.state.currentUser.username))
+                .then((c) => {
+                    contacts.value = c
+                })
             const channelCache = new Map<string, Channel>()
 
             const activeContactID = ref<string>('')
             const inputText = ref<string>('')
             const msgList = reactive<Message[]>([])
-            const currentContact = computed<User | undefined>(() => contacts.find((c) => c.username === activeContactID.value))
+            const currentContact = computed(() => contacts.value.find((c) => c.username === activeContactID.value))
 
             function selectContact (contact: User) {
                 activeContactID.value = contact.username
@@ -109,7 +114,8 @@
 
                 &:active,
                 &.active {
-                    background-color: lightskyblue;
+                    color: white;
+                    background-color: deepskyblue;
                 }
 
                 ~ .contact {
@@ -143,6 +149,7 @@
                     padding: 1em;
                     border: 1px dotted $border-color;
                     border-radius: 6px;
+                    background-color: #fff;
                     clear: both;
 
                     &:before {

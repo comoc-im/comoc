@@ -31,13 +31,21 @@
     import {mutations} from "@/store/mutations";
     import store from "@/store";
     import {derivePasswordKey} from "@/db/user/crypto";
+    import {useStore} from "vuex";
+    import {useRouter} from "vue-router";
 
     export default defineComponent({
         name: 'login',
         setup () {
             console.log('setup')
+            const store = useStore()
+            const router = useRouter()
             const username = ref('')
             const password = ref('')
+
+            if (store.getters.isSignedIn) {
+                router.replace({name: 'comoc'})
+            }
 
             return {
                 username,

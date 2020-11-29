@@ -3,15 +3,14 @@ import {argon2id, argon2Verify} from "hash-wasm";
 
 export async function generateKeyPair (): Promise<CryptoKeyPair> {
     return crypto.subtle
-        .generateKey(
-            {
-                name: "ECDSA",
-                namedCurve: "P-521"
+        .generateKey({
+                name: "ECDH",
+                namedCurve: "P-384"
             },
-            true,
-            ["encrypt", "decrypt", "sign", "verify"]
+            false,
+            ["deriveKey"]
         )
-        .then((keypair) => keypair as CryptoKeyPair)
+        // .then((keypair) => keypair)
 }
 
 

@@ -3,7 +3,6 @@ import {derivePasswordKey, verifyPassword} from "@/db/user/crypto";
 import Model from "@/db/base";
 
 
-
 export default class User extends Model<User> {
 
     username = '';
@@ -40,15 +39,19 @@ export default class User extends Model<User> {
         return null
     }
 
-    static async findAll(): Promise<User[]> {
+    static async findAll (): Promise<User[]> {
         return super.getAll<User>(USER_STORE_NAME)
     }
 
-    constructor (username: string, passwordHash: string) {
+    constructor (username: string, passwordHash: string, keyPair?: CryptoKeyPair) {
         super(USER_STORE_NAME)
 
         this.username = username
         this.passwordHash = passwordHash
+
+        if (keyPair) {
+            this.publicKey = keyPair.publicKey
+        }
     }
 
     async save (): Promise<void> {

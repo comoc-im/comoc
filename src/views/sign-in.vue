@@ -30,7 +30,7 @@
     import User from "@/db/user";
     import {mutations} from "@/store/mutations";
     import store from "@/store";
-    import {derivePasswordKey} from "@/db/user/crypto";
+    import {derivePasswordKey, generateKeyPair} from "@/db/user/crypto";
     import {useStore} from "vuex";
     import {useRouter} from "vue-router";
 
@@ -59,7 +59,8 @@
                 }
 
                 const passwordHash = await derivePasswordKey(this.password)
-                const newUser = new User(this.username, passwordHash)
+                const keyPair = await generateKeyPair()
+                const newUser = new User(this.username, passwordHash, keyPair)
                 await newUser.save()
                 console.log(newUser)
             },

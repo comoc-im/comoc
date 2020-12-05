@@ -32,17 +32,18 @@ export default abstract class Model<T> {
 
     /**
      * Read record with index
+     * @param {String} storeName
      * @param {String} index
      * @param {IDBValidKey | IDBKeyRange | null} query
      * @param {number} count
      * @return {Promise<Object>}
      */
-    protected async getAllByIndex (index: string, query?: IDBValidKey | IDBKeyRange | null, count?: number): Promise<T[]> {
+    protected static async getAllByIndex<T extends Model<T>> (storeName: string, index: string, query?: IDBValidKey | IDBKeyRange | null, count?: number): Promise<T[]> {
 
         return new Promise(resolve => {
 
-            const trans = Model.db.transaction([this.storeName], 'readonly')
-            const dbIndex = trans.objectStore(this.storeName).index(index)
+            const trans = Model.db.transaction([storeName], 'readonly')
+            const dbIndex = trans.objectStore(storeName).index(index)
             const req = dbIndex.getAll(query, count)
 
             req.onsuccess = () => resolve(req.result)

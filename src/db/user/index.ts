@@ -1,12 +1,12 @@
 import {USER_STORE_NAME} from "@/db/store-names";
-import {derivePasswordKey, verifyPassword} from "@/db/user/crypto";
+import {verifyPassword} from "@/db/user/crypto";
 import Model from "@/db/base";
 
 
 export default class User extends Model<User> {
 
     username = '';
-    publicKey: CryptoKey | null = null;
+    publicKey: CryptoKey;
     protected passwordHash = '';
 
     /**
@@ -20,10 +20,7 @@ export default class User extends Model<User> {
     }
 
     static async find (username: string, password: string): Promise<User | null> {
-        const passwordHash = await derivePasswordKey(password)
-        const user = new User(username, passwordHash)
-
-        const users = await user.getAllByIndex('username', username)
+        const users = await super.getAllByIndex<User>(USER_STORE_NAME, 'username', username)
         if (users.length === 0) {
             return null
         }
@@ -43,15 +40,12 @@ export default class User extends Model<User> {
         return super.getAll<User>(USER_STORE_NAME)
     }
 
-    constructor (username: string, passwordHash: string, keyPair?: CryptoKeyPair) {
+    constructor (username: string, passwordHash: string, keyPair: CryptoKeyPair) {
         super(USER_STORE_NAME)
 
         this.username = username
         this.passwordHash = passwordHash
-
-        if (keyPair) {
-            this.publicKey = keyPair.publicKey
-        }
+        this.publicKey = keyPair.publicKey
     }
 
     async save (): Promise<void> {

@@ -47,7 +47,7 @@
             const currentContact = computed(() => contacts.value.find((c) => c.username === activeContactID.value))
 
             function selectContact (contact: User) {
-                activeContactID.value = contact.username
+                activeContactID.value = contact.publicKey
 
                 let channel = channelCache.get(contact.username)
                 if (!channel) {

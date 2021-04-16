@@ -1,13 +1,12 @@
-import {dbName, dbVersion} from "@/config";
-import User from "@/db/user";
-import Message from "@/db/message";
-import Model from "@/db/base";
+import { dbName, dbVersion } from '@/config'
+import User from '@/db/user'
+import Message from '@/db/message'
+import Model from '@/db/base'
 
 /**
  * Open and init indexedDB globally
  */
 const dbReady: Promise<IDBDatabase> = new Promise(function (resolve, reject) {
-
     const request = indexedDB.open(dbName, dbVersion)
 
     request.onerror = function (err) {
@@ -27,7 +26,6 @@ const dbReady: Promise<IDBDatabase> = new Promise(function (resolve, reject) {
         User.init(db)
         Message.init(db)
     })
-
 })
 
 export default dbReady

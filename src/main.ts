@@ -1,15 +1,14 @@
 import 'webrtc-adapter/out/adapter_no_global'
 import 'core-js/stable'
-import {createApp} from 'vue'
-import {RouterView} from 'vue-router'
+import { createApp } from 'vue'
+import { RouterView } from 'vue-router'
 
 import './styles/index.scss'
 import router from './router'
 import store from './store'
-import dbReady from "@/db";
+import dbReady from '@/db'
 // import './registerServiceWorker'
 const app = createApp(RouterView)
-
 
 // Vue 开发选项
 if (process.env.NODE_ENV !== 'production') {
@@ -26,15 +25,13 @@ if (process.env.NODE_ENV !== 'development') {
     }
 }
 
-
 /**
  * Vue SPA Start
  */
-(async () => {
+;(async () => {
     await dbReady
 
     app.use(store)
     app.use(router)
     app.mount('#app')
 })()
-

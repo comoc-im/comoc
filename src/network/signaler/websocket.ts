@@ -1,10 +1,11 @@
-import {signalerServerWebSocketUrl} from "@/config";
-import {Signaler, SignalingMessage} from "@/network/signaler/index";
+import { signalerServerWebSocketUrl } from '@/config'
+import { Signaler, SignalingMessage } from '@/network/signaler/index'
 
-
-function createWebSocket (username: string) {
-    return new Promise<WebSocket>(resolve => {
-        const webSocket = new WebSocket(signalerServerWebSocketUrl + `?username=${username}`)
+function createWebSocket(username: string) {
+    return new Promise<WebSocket>((resolve) => {
+        const webSocket = new WebSocket(
+            signalerServerWebSocketUrl + `?username=${username}`
+        )
 
         webSocket.addEventListener('open', function () {
             console.debug('websocket open')
@@ -25,15 +26,12 @@ function createWebSocket (username: string) {
     })
 }
 
-
 const socketMap = new Map<string, Socket>()
 
 export default class Socket implements Signaler {
-
     private readonly webSocketReady: Promise<WebSocket>
 
-
-    constructor (username: string) {
+    constructor(username: string) {
         const socket = socketMap.get(username)
 
         if (socket) {
@@ -46,27 +44,18 @@ export default class Socket implements Signaler {
         return this
     }
 
-
-    async onMessage (func: (msg: SignalingMessage) => unknown): Promise<void> {
-
+    async onMessage(func: (msg: SignalingMessage) => unknown): Promise<void> {
         const webSocket = await this.webSocketReady
 
         webSocket.addEventListener('message', (msg) => {
             const data = JSON.parse(msg.data) as SignalingMessage
             func(data)
         })
-
     }
 
-
-    async send (data: SignalingMessage): Promise<void> {
-
+    async send(data: SignalingMessage): Promise<void> {
         const webSocket = await this.webSocketReady
 
         webSocket.send(JSON.stringify(data))
-
     }
-
 }
-
-

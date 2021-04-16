@@ -1,0 +1,32 @@
+{
+  "root": true,
+  "env": {
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended",
+      "@vue/typescript/recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
+  "plugins": [
+      "@typescript-eslint",
+      "prettier"
+  ],
+  "rules": {
+    "prettier/prettier": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "eqeqeq": "off",
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    "space-infix-ops": "off",
+    "strict": "off",
+    "no-dupe-class-members": "off",
+    "no-use-before-define": "off"
+  }
+}

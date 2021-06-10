@@ -45,9 +45,11 @@ import store from '@/store'
 import { derivePasswordKey, generateKeyPair } from '@/db/user/crypto'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { info, log, warn } from '@/utils/logger'
 
 export default defineComponent({
-    name: 'login',
+    name: 'sign-in',
     setup() {
         console.log('setup')
         const store = useStore()
@@ -65,28 +67,35 @@ export default defineComponent({
         }
     },
     methods: {
-        async create() {
+        create: async function () {
             if (this.username === '' || this.password === '') {
-                return 'username and password necessary'
+                warn('username and password necessary')
+                ElMessage.warning('username and password necessary')
+                return
             }
 
             const passwordHash = await derivePasswordKey(this.password)
             const keyPair = await generateKeyPair()
             const newUser = new User(this.username, passwordHash, keyPair)
             await newUser.save()
-            console.log(newUser)
+            ElMessage.success('user created')
+            info(newUser)
         },
         async submit() {
             if (this.username === '' || this.password === '') {
-                return console.log('username and password necessary')
+                warn('username and password necessary')
+                ElMessage.warning('username and password necessary')
+                return
             }
 
             const user = await User.find(this.username, this.password)
             if (!user) {
-                return console.log('user not found')
+                warn('user not found')
+                ElMessage.warning('user not found')
+                return
             }
 
-            console.log('user found', user, this)
+            info('user found', user, this)
             store.commit(mutations.SET_CURRENT_USER, user)
 
             this.$router.replace({ name: 'comoc' })

@@ -1,8 +1,15 @@
-import store from '@/store'
 import { dataChannelLabel } from '@/config'
 import { Signaler, SignalingMessageType } from '@/network/signaler'
 import Message from '@/db/message'
 import { Channel } from '@/network/channel/index'
+import { debug } from '@/utils/logger'
+
+interface ConnectionConfig {
+    pc: RTCPeerConnection
+    makingOffer: boolean
+    ignoreOffer: boolean
+    polite: boolean
+}
 
 const stunServers = [
     'stun:stun1.l.google.com:19302',
@@ -29,152 +36,194 @@ const config = {
     iceServers: stunServers.map((url) => ({ urls: url })).slice(0, 2),
 }
 
-function connect(signaler: Signaler, userID: string): Promise<RTCDataChannel> {
-    const polite =
-        [store.state.currentUser.username, userID].sort().pop() ===
-        store.state.currentUser.username
-    const pc = new RTCPeerConnection(config)
-    let makingOffer = false
+export class WebRTCChannel implements Channel {
+    private static signaler: Signaler
+    private static readonly channelCache = new Map<
+        string,
+        Promise<RTCDataChannel>
+    >()
+    private static readonly connectionCache = new Map<
+        string,
+        ConnectionConfig
+    >()
+    private static username: string
+    private listener: ((msg: MessageEvent<string>) => unknown) | null = null
+    private readonly targetUserID: string
 
-    pc.onnegotiationneeded = async () => {
-        try {
-            makingOffer = true
-            // eslint-disable-next-line
-            // @ts-ignore
-            await pc.setLocalDescription()
-            signaler.send({
-                from: store.state.currentUser.username,
-                to: userID,
-                type: SignalingMessageType.Description,
-                payload: JSON.stringify(pc.localDescription),
-            })
-        } catch (err) {
-            console.error(err)
-        } finally {
-            makingOffer = false
-        }
+    constructor(targetUserID: string) {
+        this.targetUserID = targetUserID
+        WebRTCChannel.getDataChannel(targetUserID)
     }
 
-    pc.onicecandidate = ({ candidate }) =>
-        candidate !== null &&
-        signaler.send({
-            from: store.state.currentUser.username,
-            to: userID,
-            type: SignalingMessageType.Candidate,
-            payload: JSON.stringify(candidate),
-        })
+    public static init(username: string, signaler: Signaler): void {
+        this.username = username
+        // init signaler
+        this.signaler = signaler
+        // cache all RTC offer descriptions
+        this.signaler.onMessage(async ({ type, payload, from }) => {
+            const cc = await WebRTCChannel.getConnection(from)
+            try {
+                switch (type) {
+                    case SignalingMessageType.Description: {
+                        const description = JSON.parse(
+                            payload
+                        ) as RTCSessionDescriptionInit
+                        const offerCollision =
+                            description.type == 'offer' &&
+                            (cc.makingOffer || cc.pc.signalingState != 'stable')
 
-    let ignoreOffer = false
+                        cc.ignoreOffer = !cc.polite && offerCollision
+                        if (cc.ignoreOffer) {
+                            return
+                        }
 
-    signaler.onMessage(async ({ type, payload, from }) => {
-        try {
-            switch (type) {
-                case SignalingMessageType.Description: {
-                    const description = JSON.parse(
-                        payload
-                    ) as RTCSessionDescriptionInit
-                    const offerCollision =
-                        description.type == 'offer' &&
-                        (makingOffer || pc.signalingState != 'stable')
-
-                    ignoreOffer = !polite && offerCollision
-                    if (ignoreOffer) {
-                        return
+                        await cc.pc.setRemoteDescription(description)
+                        if (description.type == 'offer') {
+                            // eslint-disable-next-line
+                            // @ts-ignore
+                            await pc.setLocalDescription()
+                            this.signaler.send({
+                                from: this.username,
+                                to: from,
+                                type: SignalingMessageType.Description,
+                                payload: JSON.stringify(cc.pc.localDescription),
+                            })
+                        }
+                        break
                     }
-
-                    await pc.setRemoteDescription(description)
-                    if (description.type == 'offer') {
-                        // eslint-disable-next-line
-                        // @ts-ignore
-                        await pc.setLocalDescription()
-                        signaler.send({
-                            from: store.state.currentUser.username,
-                            to: from,
-                            type: SignalingMessageType.Description,
-                            payload: JSON.stringify(pc.localDescription),
-                        })
-                    }
-                    break
-                }
-                case SignalingMessageType.Candidate: {
-                    const candidate = JSON.parse(payload) as RTCIceCandidate
-                    try {
-                        await pc.addIceCandidate(candidate)
-                    } catch (err) {
-                        if (!ignoreOffer) {
-                            throw err
+                    case SignalingMessageType.Candidate: {
+                        const candidate = JSON.parse(payload) as RTCIceCandidate
+                        try {
+                            await cc.pc.addIceCandidate(candidate)
+                        } catch (err) {
+                            if (!cc.ignoreOffer) {
+                                throw err
+                            }
                         }
                     }
                 }
+            } catch (err) {
+                console.error(err)
             }
-        } catch (err) {
-            console.error(err)
-        }
-    })
+        })
+    }
 
-    return new Promise<RTCDataChannel>((resolve) => {
-        let dc: RTCDataChannel
-        if (polite) {
-            pc.ondatachannel = function ({ channel }) {
-                dc = channel
-                dc.addEventListener('message', function (event) {
-                    console.debug('data channel received: ' + event.data)
+    private static async getConnection(
+        targetUserID: string
+    ): Promise<ConnectionConfig> {
+        const con = WebRTCChannel.connectionCache.get(targetUserID)
+        if (con) {
+            return con
+        }
+
+        const polite =
+            [this.username, targetUserID].sort().pop() === this.username
+
+        const newCC: ConnectionConfig = {
+            pc: new RTCPeerConnection(config),
+            ignoreOffer: false,
+            makingOffer: false,
+            polite,
+        }
+        newCC.pc.onnegotiationneeded = async () => {
+            debug('onnegotiationneeded')
+            try {
+                newCC.makingOffer = true
+                await newCC.pc.setLocalDescription()
+                this.signaler.send({
+                    from: this.username,
+                    to: targetUserID,
+                    type: SignalingMessageType.Description,
+                    payload: JSON.stringify(newCC.pc.localDescription),
                 })
-
-                dc.onopen = function () {
-                    console.log('datachannel open')
-                    resolve(channel)
-                }
-
-                dc.onclose = function () {
-                    console.log('datachannel close')
-                }
-
-                dc.onerror = function () {
-                    console.log('datachannel close')
-                }
-            }
-        } else {
-            dc = pc.createDataChannel(dataChannelLabel)
-            dc.addEventListener('message', function (event) {
-                console.debug('data channel received: ' + event.data)
-            })
-
-            dc.onopen = function () {
-                console.log('datachannel open')
-                resolve(dc)
-            }
-
-            dc.onclose = function () {
-                console.log('datachannel close')
-            }
-
-            dc.onerror = function () {
-                console.log('datachannel close')
+            } catch (err) {
+                console.error(err)
+            } finally {
+                newCC.makingOffer = false
             }
         }
-    })
-}
 
-export class WebRTCChannel implements Channel {
-    private readonly dataChannelPromise: Promise<RTCDataChannel>
-    private listener: ((msg: MessageEvent<string>) => unknown) | null = null
+        newCC.pc.onicecandidate = ({ candidate }) => {
+            debug('onicecandidate')
+            candidate !== null &&
+                this.signaler.send({
+                    from: this.username,
+                    to: targetUserID,
+                    type: SignalingMessageType.Candidate,
+                    payload: JSON.stringify(candidate),
+                })
+        }
 
-    constructor(signaler: Signaler, userID: string) {
-        this.dataChannelPromise = connect(signaler, userID)
+        return newCC
+    }
+
+    private static async getDataChannel(
+        targetUserID: string
+    ): Promise<RTCDataChannel> {
+        let p = WebRTCChannel.channelCache.get(targetUserID)
+
+        if (!p) {
+            const cc = await WebRTCChannel.getConnection(targetUserID)
+            p = new Promise<RTCDataChannel>((resolve) => {
+                let dc: RTCDataChannel
+                if (cc.polite) {
+                    cc.pc.ondatachannel = function ({ channel }) {
+                        debug('ondatachannel')
+                        dc = channel
+                        dc.addEventListener('message', function (event) {
+                            debug('data channel received: ' + event.data)
+                        })
+
+                        dc.onopen = function () {
+                            debug('datachannel open')
+                            resolve(channel)
+                        }
+
+                        dc.onclose = function () {
+                            debug('datachannel close')
+                        }
+
+                        dc.onerror = function () {
+                            debug('datachannel close')
+                        }
+                    }
+                } else {
+                    dc = cc.pc.createDataChannel(dataChannelLabel)
+                    dc.addEventListener('message', function (event) {
+                        debug('data channel received: ' + event.data)
+                    })
+
+                    dc.onopen = function () {
+                        debug('datachannel open')
+                        resolve(dc)
+                    }
+
+                    dc.onclose = function () {
+                        debug('datachannel close')
+                    }
+
+                    dc.onerror = function () {
+                        debug('datachannel close')
+                    }
+                }
+            })
+            WebRTCChannel.channelCache.set(targetUserID, p)
+        }
+
+        return p
     }
 
     async send(msg: Message): Promise<void> {
-        const channel = await this.dataChannelPromise
+        const channel = await WebRTCChannel.getDataChannel(this.targetUserID)
 
         // fixme send multiple data types
         channel.send(JSON.stringify(msg))
     }
 
     async onMessage(func: (msg: Message) => unknown): Promise<void> {
-        const channel = await this.dataChannelPromise
+        const channel = await WebRTCChannel.getDataChannel(this.targetUserID)
 
-        // fixme drop previous listener
+        // drop previous listener
         if (this.listener) {
             channel.removeEventListener('message', this.listener)
         }

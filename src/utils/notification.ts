@@ -1,6 +1,6 @@
 import { error } from '@/utils/logger'
 
-export function notice(msg: string) {
+export function notice(msg: string): void {
     // Let's check if the browser supports notifications
     if (!('Notification' in window)) {
         error('This browser does not support desktop notification')

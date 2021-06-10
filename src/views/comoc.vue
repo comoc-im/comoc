@@ -31,16 +31,21 @@
 <script lang="ts">
 import { computed, defineComponent, reactive, ref } from 'vue'
 import User from '@/db/user'
-import Socket from '@/network/signaler/websocket'
 import store from '@/store'
 import { WebRTCChannel } from '@/network/channel/webrtc'
-import { Channel } from '@/network/channel'
 import Message, { MessageType } from '@/db/message'
+import { debug } from '@/utils/logger'
+import Socket from '@/network/signaler/websocket'
 
 export default defineComponent({
     name: 'Comoc-Web',
     setup() {
-        const signaler = new Socket(store.state.currentUser.username)
+        // init WebRTCChannel
+        WebRTCChannel.init(
+            store.state.currentUser.username,
+            new Socket(store.state.currentUser.username)
+        )
+
         let contacts = ref<User[]>([])
         User.findAll()
             .then((users) =>
@@ -51,7 +56,6 @@ export default defineComponent({
             .then((c) => {
                 contacts.value = c
             })
-        const channelCache = new Map<string, Channel>()
 
         const activeContactID = ref<string>('')
         const inputText = ref<string>('')
@@ -61,13 +65,11 @@ export default defineComponent({
         )
 
         function selectContact(contact: User) {
-            activeContactID.value = contact.publicKey
+            debug('select contact', contact)
+            activeContactID.value = contact.username
 
-            let channel = channelCache.get(contact.username)
-            if (!channel) {
-                channel = new WebRTCChannel(signaler, contact.username)
-                channelCache.set(contact.username, channel)
-            }
+            let channel = new WebRTCChannel(contact.username)
+            debug('get channel', channel)
 
             channel.onMessage((msg) => {
                 msgList.push(msg)
@@ -75,7 +77,7 @@ export default defineComponent({
         }
 
         function send() {
-            let channel = channelCache.get(activeContactID.value)
+            let channel = new WebRTCChannel(activeContactID.value)
 
             if (!channel) {
                 console.warn('send without channel')

@@ -14,5 +14,5 @@ export type SignalingMessage = {
 export interface Signaler {
     send(data: SignalingMessage): void
 
-    onMessage(func: (msg: SignalingMessage) => unknown): void
+    onMessage(func: (msg: SignalingMessage) => unknown): Promise<() => void>
 }

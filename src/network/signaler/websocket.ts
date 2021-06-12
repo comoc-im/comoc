@@ -1,6 +1,10 @@
 import { signalerServerWebSocketUrl } from '@/config'
-import { Signaler, SignalingMessage } from '@/network/signaler/index'
-import { debug, error } from '@/utils/logger'
+import {
+    Signaler,
+    SignalingMessage,
+    SignalingMessageType,
+} from '@/network/signaler/index'
+import { debug, error, warn } from '@/utils/logger'
 
 function createWebSocket(username: string) {
     return new Promise<WebSocket>((resolve) => {
@@ -18,11 +22,11 @@ function createWebSocket(username: string) {
         })
 
         webSocket.addEventListener('close', function () {
-            debug('websocket close')
+            warn('websocket close')
         })
 
         webSocket.addEventListener('message', function (msgEvt) {
-            debug('websocket message', msgEvt)
+            // debug('websocket message', msgEvt)
         })
     })
 }
@@ -33,14 +37,14 @@ export default class Socket implements Signaler {
     constructor(username: string) {
         this.webSocketReady = createWebSocket(username)
 
-        // setInterval(() => {
-        //     this.send({
-        //         from: username,
-        //         to: username,
-        //         type: SignalingMessageType.Heartbeat,
-        //         payload: '',
-        //     })
-        // }, 5000)
+        setInterval(() => {
+            this.send({
+                from: username,
+                to: username,
+                type: SignalingMessageType.Heartbeat,
+                payload: '',
+            })
+        }, 5000)
     }
 
     async onMessage(
@@ -60,7 +64,7 @@ export default class Socket implements Signaler {
 
     async send(data: SignalingMessage): Promise<void> {
         const webSocket = await this.webSocketReady
-        debug('websocket sending', data)
+        // debug('websocket sending', data)
 
         webSocket.send(JSON.stringify(data))
     }

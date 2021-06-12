@@ -34,7 +34,7 @@ import User from '@/db/user'
 import store from '@/store'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
-import { debug } from '@/utils/logger'
+import { debug, info } from '@/utils/logger'
 import Socket from '@/network/signaler/websocket'
 
 export default defineComponent({
@@ -72,6 +72,7 @@ export default defineComponent({
             debug('get channel', channel)
 
             channel.onMessage((msg) => {
+                info('receive message', msg)
                 msgList.push(msg)
             })
         }
@@ -85,18 +86,19 @@ export default defineComponent({
             }
 
             if (!currentContact.value) {
-                console.warn('send witout currentContract')
+                console.warn('send without currentContract')
                 return
             }
 
-            channel.send(
-                new Message(
-                    MessageType.Text,
-                    inputText.value,
-                    store.state.currentUser.username,
-                    currentContact.value.username
-                )
+            const msg = new Message(
+                MessageType.Text,
+                inputText.value,
+                store.state.currentUser.username,
+                currentContact.value.username
             )
+
+            msg.save()
+            channel.send(msg)
 
             inputText.value = ''
         }

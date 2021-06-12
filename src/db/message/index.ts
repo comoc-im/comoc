@@ -31,4 +31,8 @@ export default class Message extends Model<Message> {
         this.from = from
         this.to = to
     }
+
+    async save(): Promise<void> {
+        await this.put()
+    }
 }

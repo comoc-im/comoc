@@ -1,6 +1,6 @@
 import { dataChannelLabel } from '@/config'
 import { Signaler, SignalingMessageType } from '@/network/signaler'
-import Message from '@/db/message'
+import Message, { MessageType } from '@/db/message'
 import { Channel } from '@/network/channel/index'
 import { debug } from '@/utils/logger'
 
@@ -9,6 +9,7 @@ interface ConnectionConfig {
     makingOffer: boolean
     ignoreOffer: boolean
     polite: boolean
+    datachannel: Promise<RTCDataChannel>
 }
 
 const stunServers = [
@@ -38,10 +39,6 @@ const config = {
 
 export class WebRTCChannel implements Channel {
     private static signaler: Signaler
-    private static readonly channelCache = new Map<
-        string,
-        Promise<RTCDataChannel>
-    >()
     private static readonly connectionCache = new Map<
         string,
         ConnectionConfig
@@ -52,7 +49,7 @@ export class WebRTCChannel implements Channel {
 
     constructor(targetUserID: string) {
         this.targetUserID = targetUserID
-        WebRTCChannel.getDataChannel(targetUserID)
+        WebRTCChannel.getConnection(targetUserID)
     }
 
     public static init(username: string, signaler: Signaler): void {
@@ -61,37 +58,44 @@ export class WebRTCChannel implements Channel {
         this.signaler = signaler
         // cache all RTC offer descriptions
         this.signaler.onMessage(async ({ type, payload, from }) => {
-            const cc = await WebRTCChannel.getConnection(from)
             try {
                 switch (type) {
                     case SignalingMessageType.Description: {
+                        const cc = await WebRTCChannel.getConnection(from)
                         const description = JSON.parse(
                             payload
                         ) as RTCSessionDescriptionInit
-                        const offerCollision =
-                            description.type == 'offer' &&
-                            (cc.makingOffer || cc.pc.signalingState != 'stable')
+                        debug('receive description', description)
 
-                        cc.ignoreOffer = !cc.polite && offerCollision
-                        if (cc.ignoreOffer) {
-                            return
-                        }
+                        if (description.type === 'offer') {
+                            const offerCollision =
+                                cc.makingOffer ||
+                                cc.pc.signalingState != 'stable'
 
-                        await cc.pc.setRemoteDescription(description)
-                        if (description.type == 'offer') {
-                            // eslint-disable-next-line
-                            // @ts-ignore
-                            await pc.setLocalDescription()
+                            cc.ignoreOffer = !cc.polite && offerCollision
+
+                            if (cc.ignoreOffer) {
+                                return
+                            }
+
+                            await cc.pc.setRemoteDescription(description)
+                            await cc.pc.setLocalDescription()
+
+                            debug('send description answer', description)
                             this.signaler.send({
                                 from: this.username,
                                 to: from,
                                 type: SignalingMessageType.Description,
                                 payload: JSON.stringify(cc.pc.localDescription),
                             })
+                        } else if (description.type === 'answer') {
+                            await cc.pc.setRemoteDescription(description)
                         }
+
                         break
                     }
                     case SignalingMessageType.Candidate: {
+                        const cc = await WebRTCChannel.getConnection(from)
                         const candidate = JSON.parse(payload) as RTCIceCandidate
                         try {
                             await cc.pc.addIceCandidate(candidate)
@@ -113,23 +117,21 @@ export class WebRTCChannel implements Channel {
     ): Promise<ConnectionConfig> {
         const con = WebRTCChannel.connectionCache.get(targetUserID)
         if (con) {
+            debug('use connection from cache', targetUserID)
             return con
         }
 
+        debug('create connection for', targetUserID)
         const polite =
             [this.username, targetUserID].sort().pop() === this.username
+        const pc = new RTCPeerConnection(config)
 
-        const newCC: ConnectionConfig = {
-            pc: new RTCPeerConnection(config),
-            ignoreOffer: false,
-            makingOffer: false,
-            polite,
-        }
-        newCC.pc.onnegotiationneeded = async () => {
-            debug('onnegotiationneeded')
+        pc.onnegotiationneeded = async () => {
+            debug('onnegotiationneeded', newCC.pc.connectionState)
             try {
                 newCC.makingOffer = true
                 await newCC.pc.setLocalDescription()
+                debug('send description offer', newCC.pc.localDescription)
                 this.signaler.send({
                     from: this.username,
                     to: targetUserID,
@@ -143,8 +145,8 @@ export class WebRTCChannel implements Channel {
             }
         }
 
-        newCC.pc.onicecandidate = ({ candidate }) => {
-            debug('onicecandidate')
+        pc.onicecandidate = ({ candidate }) => {
+            debug('onicecandidate', candidate)
             candidate !== null &&
                 this.signaler.send({
                     from: this.username,
@@ -154,48 +156,21 @@ export class WebRTCChannel implements Channel {
                 })
         }
 
-        return newCC
-    }
-
-    private static async getDataChannel(
-        targetUserID: string
-    ): Promise<RTCDataChannel> {
-        let p = WebRTCChannel.channelCache.get(targetUserID)
-
-        if (!p) {
-            const cc = await WebRTCChannel.getConnection(targetUserID)
-            p = new Promise<RTCDataChannel>((resolve) => {
-                let dc: RTCDataChannel
-                if (cc.polite) {
-                    cc.pc.ondatachannel = function ({ channel }) {
-                        debug('ondatachannel')
-                        dc = channel
-                        dc.addEventListener('message', function (event) {
-                            debug('data channel received: ' + event.data)
-                        })
-
-                        dc.onopen = function () {
-                            debug('datachannel open')
-                            resolve(channel)
-                        }
-
-                        dc.onclose = function () {
-                            debug('datachannel close')
-                        }
-
-                        dc.onerror = function () {
-                            debug('datachannel close')
-                        }
-                    }
-                } else {
-                    dc = cc.pc.createDataChannel(dataChannelLabel)
+        // polite peer should wait datachannel event
+        const datachannel = new Promise<RTCDataChannel>((resolve) => {
+            let dc: RTCDataChannel
+            if (polite) {
+                // polite peer should wait datachannel event
+                pc.ondatachannel = function ({ channel }) {
+                    debug('ondatachannel')
+                    dc = channel
                     dc.addEventListener('message', function (event) {
-                        debug('data channel received: ' + event.data)
+                        debug('datachannel received: ' + event.data)
                     })
 
                     dc.onopen = function () {
                         debug('datachannel open')
-                        resolve(dc)
+                        resolve(channel)
                     }
 
                     dc.onclose = function () {
@@ -206,22 +181,51 @@ export class WebRTCChannel implements Channel {
                         debug('datachannel close')
                     }
                 }
-            })
-            WebRTCChannel.channelCache.set(targetUserID, p)
-        }
+            } else {
+                dc = pc.createDataChannel(dataChannelLabel)
+                debug('create dataChannel')
+                dc.addEventListener('message', function (event) {
+                    debug('datachannel received: ' + event.data)
+                })
 
-        return p
+                dc.onopen = function () {
+                    debug('datachannel open')
+                    resolve(dc)
+                }
+
+                dc.onclose = function () {
+                    debug('datachannel close')
+                }
+
+                dc.onerror = function () {
+                    debug('datachannel close')
+                }
+            }
+        })
+
+        const newCC: ConnectionConfig = {
+            pc,
+            ignoreOffer: false,
+            makingOffer: false,
+            polite,
+            datachannel,
+        }
+        WebRTCChannel.connectionCache.set(targetUserID, newCC)
+        return newCC
     }
 
     async send(msg: Message): Promise<void> {
-        const channel = await WebRTCChannel.getDataChannel(this.targetUserID)
+        debug('sending message', msg)
+        const cc = await WebRTCChannel.getConnection(this.targetUserID)
+        const channel = await cc.datachannel
 
         // fixme send multiple data types
         channel.send(JSON.stringify(msg))
     }
 
     async onMessage(func: (msg: Message) => unknown): Promise<void> {
-        const channel = await WebRTCChannel.getDataChannel(this.targetUserID)
+        const cc = await WebRTCChannel.getConnection(this.targetUserID)
+        const channel = await cc.datachannel
 
         // drop previous listener
         if (this.listener) {
@@ -229,7 +233,17 @@ export class WebRTCChannel implements Channel {
         }
 
         this.listener = function (msgEvt: MessageEvent<string>) {
-            func(JSON.parse(msgEvt.data))
+            const msgObj = JSON.parse(msgEvt.data) as Message
+            debug('receiving message', msgObj)
+            const msg = new Message(
+                MessageType.Text,
+                msgObj.payload,
+                msgObj.from,
+                msgObj.to
+            )
+
+            msg.save()
+            func(msg)
         }
         channel.addEventListener('message', this.listener)
     }

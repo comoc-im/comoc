@@ -11,6 +11,7 @@ export default class Message extends Model<Message> {
     to: string
     type: MessageType
     payload: string
+    timestamp: number
 
     static init(db: IDBDatabase): void {
         const store = db.createObjectStore(MESSAGE_STORE_NAME, {
@@ -25,11 +26,13 @@ export default class Message extends Model<Message> {
     constructor(type: MessageType, payload: string, from: string, to: string) {
         super(MESSAGE_STORE_NAME)
 
-        this.id = Date.now().toString() // todo
+        const timestamp = Date.now()
+        this.id = timestamp.toString() // todo
         this.type = type
         this.payload = payload
         this.from = from
         this.to = to
+        this.timestamp = timestamp
     }
 
     async save(): Promise<void> {

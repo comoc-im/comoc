@@ -3,7 +3,7 @@
  * TODO:
  *  data security: encryption before persistence.
  */
-export default abstract class Model<T> {
+export default abstract class Model {
     protected static db: IDBDatabase
     private readonly storeName: string
 
@@ -34,7 +34,7 @@ export default abstract class Model<T> {
      * @param {number} count
      * @return {Promise<Object>}
      */
-    protected static async getAllByIndex<T extends Model<T>>(
+    protected static async getAllByIndex<T extends Model>(
         storeName: string,
         index: string,
         query?: IDBValidKey | IDBKeyRange | null,
@@ -47,6 +47,30 @@ export default abstract class Model<T> {
 
             req.onsuccess = () => resolve(req.result)
         })
+    }
+
+    protected static collectByIndex<T>(
+        storeName: string,
+        indexName: Extract<keyof T, string>
+    ): AsyncIterable<T> {
+        const trans = Model.db.transaction([storeName], 'readonly')
+        const index = trans.objectStore(storeName).index(indexName)
+        const req = index.openCursor()
+        return {
+            [Symbol.asyncIterator]: () => ({
+                next: () =>
+                    new Promise(function (resolve) {
+                        req.onsuccess = () => {
+                            if (req.result) {
+                                resolve({ value: req.result.value })
+                                req.result.continue()
+                            } else {
+                                resolve({ done: true, value: undefined })
+                            }
+                        }
+                    }),
+            }),
+        }
     }
 
     /**

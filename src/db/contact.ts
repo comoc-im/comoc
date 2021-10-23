@@ -1,7 +1,7 @@
 import Model from '@/db/base'
 import { CONTACT_STORE_NAME } from '@/db/store-names'
 
-export default class Contact extends Model<Contact> {
+export default class Contact extends Model {
     username = ''
     publicKey: CryptoKey
 

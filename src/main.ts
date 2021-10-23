@@ -7,6 +7,7 @@ import './styles/index.scss'
 import router from './router'
 import store from './store'
 import dbReady from '@/db'
+import { filters } from '@/filters'
 // import './registerServiceWorker'
 const app = createApp(RouterView)
 
@@ -31,6 +32,7 @@ if (process.env.NODE_ENV !== 'development') {
 ;(async () => {
     await dbReady
 
+    app.use(filters)
     app.use(store)
     app.use(router)
     app.mount('#app')

@@ -2,7 +2,7 @@ import { USER_STORE_NAME } from '@/db/store-names'
 import { verifyPassword } from '@/db/user/crypto'
 import Model from '@/db/base'
 
-export default class User extends Model<User> {
+export default class User extends Model {
     username = ''
     publicKey: CryptoKey
     protected passwordHash = ''

@@ -15,8 +15,23 @@
 
         <div class="chat">
             <div class="chat-view">
-                <div v-for="msg in msgList" :key="msg" class="msg">
-                    {{ msg.payload }}
+                <div
+                    v-for="msg in msgList"
+                    :key="msg"
+                    :class="[
+                        'msg',
+                        {
+                            target:
+                                msg.to === $store.state.currentUser.username,
+                            self:
+                                msg.from === $store.state.currentUser.username,
+                        },
+                    ]"
+                >
+                    <p class="msg-content">{{ msg.payload }}</p>
+                    <p class="msg-time">
+                        {{ $filters.toDateTimeStr(msg.timestamp) }}
+                    </p>
                 </div>
             </div>
             <div class="chat-input">
@@ -29,7 +44,7 @@
     </div>
 </template>
 <script lang="ts">
-import { computed, defineComponent, reactive, ref } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 import User from '@/db/user'
 import store from '@/store'
 import { WebRTCChannel } from '@/network/channel/webrtc'
@@ -59,7 +74,7 @@ export default defineComponent({
 
         const activeContactID = ref<string>('')
         const inputText = ref<string>('')
-        const msgList = reactive<Message[]>([])
+        const msgList = ref<Message[]>([])
         const currentContact = computed(() =>
             contacts.value.find((c) => c.username === activeContactID.value)
         )
@@ -68,12 +83,19 @@ export default defineComponent({
             debug('select contact', contact)
             activeContactID.value = contact.username
 
+            Message.getHistoryWith(
+                store.state.currentUser.username,
+                contact.username
+            ).then((messages) => {
+                msgList.value = messages
+            })
+
             let channel = new WebRTCChannel(contact.username)
             debug('get channel', channel)
 
             channel.onMessage((msg) => {
                 info('receive message', msg)
-                msgList.push(msg)
+                msgList.value.push(msg)
             })
         }
 
@@ -166,24 +188,42 @@ export default defineComponent({
             }
 
             .msg {
-                float: left;
-                padding: 1em;
-                border: 1px dotted $border-color;
-                border-radius: 6px;
-                background-color: #fff;
-                clear: both;
-
-                &:before {
-                    content: attr(data-owner);
-                    position: absolute;
-                    bottom: -100%;
-                    left: 0;
-                    color: lightgrey;
-                    user-select: none;
-                }
+                margin: 1em 0;
 
                 &.self {
-                    float: right;
+                    text-align: right;
+
+                    .msg-content {
+                        filter: drop-shadow(2px 3px 3px $border-color);
+                    }
+                }
+
+                &.target {
+                    text-align: left;
+
+                    .msg-content {
+                        filter: drop-shadow(-2px 3px 3px $border-color);
+                    }
+                }
+
+                .msg-content {
+                    display: inline-block;
+                    text-align: left;
+                    margin: 0;
+                    padding: 0.6em 1em;
+                    font-size: 14px;
+                    border: 1px solid $border-color;
+                    border-radius: 6px;
+                    background-color: #fff;
+                }
+
+                .msg-time {
+                    white-space: nowrap;
+                    font-size: 12px;
+                    line-height: 20px;
+                    margin: 0;
+                    color: darkgray;
+                    user-select: none;
                 }
             }
         }

@@ -3,6 +3,7 @@ import User from '@/db/user'
 import { mutations } from '@/store/mutations'
 
 export type commonStore = {
+    currentAccount: string
     currentUser: User | { [index: string]: never }
 }
 
@@ -12,6 +13,7 @@ const store = createStore<commonStore>({
     strict: true,
     state() {
         return {
+            currentAccount: '',
             currentUser: {},
         }
     },
@@ -21,6 +23,9 @@ const store = createStore<commonStore>({
         },
     },
     mutations: {
+        [mutations.SET_CURRENT_ACCOUNT](state, account: string) {
+            state.currentAccount = account
+        },
         [mutations.SET_CURRENT_USER](state, user: User) {
             state.currentUser = user
             window.sessionStorage.setItem(

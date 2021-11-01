@@ -18,9 +18,11 @@
     "vue": "^3.2.20",
     "vue-router": "^4.0.12",
     "vuex": "^4.0.2",
+    "web3": "^1.6.0",
     "webrtc-adapter": "^8.1.0"
   },
   "devDependencies": {
+    "@metamask/providers": "^8.1.1",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "@vitejs/plugin-vue": "^1.9.3",

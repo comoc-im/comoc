@@ -1,15 +1,16 @@
-import { Component } from '@vue/runtime-core'
+import store from '@/store'
 
-const signIn = (): Promise<Component> =>
-    import(
-        /* webpackChunkName: "about", prefetch: true */ '../views/sign-in.vue'
-    )
-const Comoc = (): Promise<Component> =>
-    import(/* webpackChunkName: "about", prefetch: true */ '../views/comoc.vue')
+const signIn = () => import('../views/sign-in.vue')
+const Comoc = () => import('../views/comoc.vue')
 
 export default [
     { path: '/sign_in', name: 'signIn', component: signIn },
-    { path: '/comoc', name: 'comoc', component: Comoc },
+    {
+        path: '/comoc',
+        name: 'comoc',
+        component: Comoc,
+        props: { currentUser: store.state.currentUser },
+    },
     {
         path: '/:pathMatch(.*)*',
         name: 'catchAll',

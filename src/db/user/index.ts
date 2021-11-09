@@ -1,17 +1,42 @@
 import { USER_STORE_NAME } from '@/db/store-names'
-import { verifyPassword } from '@/db/user/crypto'
+import { derivePassword, verifyPassword } from '@/db/user/crypto'
 import Model from '@/db/base'
 
-export default class User extends Model {
-    username = ''
-    publicKey: CryptoKey
-    protected passwordHash = ''
+export class User extends Model {
+    public username: string
+    public publicKey: CryptoKey
+    private privateKey: unknown
+    private passwordHash: string
+
+    constructor({
+        username,
+        passwordHash,
+        publicKey,
+        privateKey,
+    }: {
+        username: string
+        publicKey: CryptoKey
+        passwordHash: string
+        privateKey: unknown
+    }) {
+        super(USER_STORE_NAME)
+
+        this.username = username
+        this.passwordHash = passwordHash
+        this.publicKey = publicKey
+        this.privateKey = privateKey
+    }
 
     /**
      * Init User object store
      * @param db
      */
     static init(db: IDBDatabase): void {
+        try {
+            db.deleteObjectStore(USER_STORE_NAME)
+        } catch (err) {
+            //
+        }
         const userStore = db.createObjectStore(USER_STORE_NAME, {
             autoIncrement: true,
         })
@@ -50,19 +75,23 @@ export default class User extends Model {
         return super.getAll<User>(USER_STORE_NAME)
     }
 
-    constructor(
-        username: string,
-        passwordHash: string,
-        keyPair: CryptoKeyPair
-    ) {
-        super(USER_STORE_NAME)
-
-        this.username = username
-        this.passwordHash = passwordHash
-        this.publicKey = keyPair.publicKey
-    }
-
     async save(): Promise<void> {
         await this.put()
     }
+}
+
+export async function createUser(
+    username: string,
+    password: string,
+    publicKey: CryptoKey,
+    privateKey: unknown
+): Promise<User> {
+    const user = new User({
+        username,
+        passwordHash: await derivePassword(password),
+        publicKey,
+        privateKey,
+    })
+    await user.save()
+    return user
 }

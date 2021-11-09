@@ -4,104 +4,160 @@
             <p v-if="$store.getters.isSignedIn">
                 already signed in, jumping now...
             </p>
-            <form v-else @submit.prevent="submit">
-                <label>
-                    Username
+            <form v-else>
+                <template v-if="!$store.state.currentId">
+                    <label>
+                        Username
+                        <br />
+                        <input
+                            v-model.trim="username"
+                            autocomplete="username"
+                            name="username"
+                            type="text"
+                            @keydown.enter.prevent="create"
+                        />
+                    </label>
+                    <br />
                     <br />
                     <input
-                        v-model.trim="username"
-                        autocomplete="username"
-                        name="username"
-                        type="text"
+                        type="button"
+                        value="Create Comoc ID"
+                        @click="create"
                     />
-                </label>
-                <br />
-                <br />
-                <label>
-                    Password
+                </template>
+                <template v-else>
+                    <label>
+                        Password
+                        <br />
+                        <input
+                            v-model.trim="password"
+                            autocomplete="current-password"
+                            name="password"
+                            type="password"
+                            @keydown.enter.prevent="signIn"
+                        />
+                    </label>
                     <br />
-                    <input
-                        v-model.trim="password"
-                        autocomplete="current-password"
-                        name="password"
-                        type="text"
-                        @keyup.enter="submit"
-                    />
-                </label>
-                <br />
-                <br />
-                <input type="button" value="Sign Up" @click="create" />
-                &nbsp;
-                <input type="button" value="Sign In" @click="submit" />
+                    <br />
+                    <input type="button" value="Sign In" @click="signIn" />
+                </template>
             </form>
         </div>
     </div>
 </template>
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
-import User from '@/db/user'
-import { mutations } from '@/store/mutations'
-import store from '@/store'
-import { derivePasswordKey, generateKeyPair } from '@/db/user/crypto'
+<script lang="ts" setup>
+import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { info, log, warn } from '@/utils/logger'
+import { error, todo, warn } from '@/utils/logger'
+import { download } from '@/utils/file'
+import { createId, stringify, wrapPrivateKey } from '@/id'
+import { mutations } from '@/store/mutations'
+import { commonStore } from '@/store'
+import { SessionStorageKeys } from '@/constants'
+import { createUser } from '@/db/user'
 
-export default defineComponent({
-    name: 'sign-in',
-    setup() {
-        console.log('setup')
-        const store = useStore()
-        const router = useRouter()
-        const username = ref('')
-        const password = ref('')
+const usernameCache =
+    window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
+const store = useStore<commonStore>()
+const router = useRouter()
+const username = ref(usernameCache)
+const password = ref('')
 
-        if (store.getters.isSignedIn) {
-            router.replace({ name: 'comoc' })
+function goToComoc() {
+    window.sessionStorage.removeItem(SessionStorageKeys.Username)
+    router.replace({ name: 'comoc' })
+}
+
+async function create() {
+    if (username.value === '') {
+        warn('username necessary')
+        ElMessage.warning('username necessary')
+        return
+    }
+
+    try {
+        const id = await createId()
+        download(await stringify(id), `${username.value}.id`)
+        store.commit(mutations.SET_CURRENT_ID, id)
+    } catch (err) {
+        error(`create fail, ${err}`)
+        ElMessage.error(`create fail, ${err}`)
+    }
+
+    // const passwordHash = await derivePasswordKey(this.password)
+    // const newUser = new User(this.username, passwordHash, keyPair)
+    // await newUser.save()
+    // ElMessage.success('user created')
+    // info(newUser)
+}
+
+async function signIn() {
+    if (!store.state.currentId) {
+        warn('no comoc id')
+        ElMessage.warning('no comoc id')
+        return
+    }
+    if (password.value === '') {
+        warn('password necessary')
+        ElMessage.warning('password necessary')
+        return
+    }
+
+    try {
+        const wrappedPrivateKey = await wrapPrivateKey(
+            password.value,
+            store.state.currentId.privateKey
+        )
+
+        // TODO send public key, username, and a private key signed sign-in-req to Beacon server
+        // await signIn(publicK, username.value, )
+        todo('sign in to Beacon server')
+
+        const user = await createUser(
+            username.value,
+            password.value,
+            store.state.currentId.publicKey,
+            wrappedPrivateKey
+        )
+        store.commit(mutations.SET_CURRENT_USER, user)
+        goToComoc()
+    } catch (err) {
+        error(`sign in fail, ${err}`)
+        ElMessage.error(`sign in fail, ${err}`)
+    }
+}
+
+if (store.getters.isSignedIn) {
+    goToComoc()
+} else {
+    watch(username, (newName, oldName) => {
+        if (newName !== oldName) {
+            window.sessionStorage.setItem(SessionStorageKeys.Username, newName)
         }
+    })
+}
 
-        return {
-            username,
-            password,
-        }
-    },
-    methods: {
-        create: async function () {
-            if (this.username === '' || this.password === '') {
-                warn('username and password necessary')
-                ElMessage.warning('username and password necessary')
-                return
-            }
-
-            const passwordHash = await derivePasswordKey(this.password)
-            const keyPair = await generateKeyPair()
-            const newUser = new User(this.username, passwordHash, keyPair)
-            await newUser.save()
-            ElMessage.success('user created')
-            info(newUser)
-        },
-        async submit() {
-            if (this.username === '' || this.password === '') {
-                warn('username and password necessary')
-                ElMessage.warning('username and password necessary')
-                return
-            }
-
-            const user = await User.find(this.username, this.password)
-            if (!user) {
-                warn('user not found')
-                ElMessage.warning('user not found')
-                return
-            }
-
-            info('user found', user, this)
-            store.commit(mutations.SET_CURRENT_USER, user)
-
-            this.$router.replace({ name: 'comoc' })
-        },
-    },
-})
+// async submit() {
+//     if (this.username === '' || this.password === '') {
+//         warn('username and password necessary')
+//         ElMessage.warning('username and password necessary')
+//         return
+//     }
+//
+//     const user = await User.find(this.username, this.password)
+//     if (!user) {
+//         warn('user not found')
+//         ElMessage.warning('user not found')
+//         return
+//     }
+//
+//     info('user found', user, this)
+//     store.commit(mutations.SET_CURRENT_USER, user)
+//
+//     this.$router.replace({ name: 'comoc' })
+// },
 </script>
 <style lang="scss">
 .login {

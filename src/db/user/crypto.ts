@@ -1,17 +1,5 @@
 import { argon2id, argon2Verify } from 'hash-wasm'
 
-export async function generateKeyPair(): Promise<CryptoKeyPair> {
-    return crypto.subtle.generateKey(
-        {
-            name: 'ECDH',
-            namedCurve: 'P-384',
-        },
-        false,
-        ['deriveKey']
-    )
-    // .then((keypair) => keypair)
-}
-
 /**
  * Derive a hash key from password string
  * use argon2id for now, todo consider passphrases later
@@ -19,7 +7,7 @@ export async function generateKeyPair(): Promise<CryptoKeyPair> {
  * @param {string} password
  * @return Promise<string>
  */
-export async function derivePasswordKey(password: string): Promise<string> {
+export async function derivePassword(password: string): Promise<string> {
     return argon2id({
         password,
         salt: window.crypto.getRandomValues(new Uint8Array(32)),

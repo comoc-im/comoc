@@ -21,10 +21,8 @@
                     :class="[
                         'msg',
                         {
-                            target:
-                                msg.to === $store.state.currentUser.username,
-                            self:
-                                msg.from === $store.state.currentUser.username,
+                            target: msg.to === props.currentUser.username,
+                            self: msg.from === props.currentUser.username,
                         },
                     ]"
                 >
@@ -43,98 +41,76 @@
         </div>
     </div>
 </template>
-<script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
-import User from '@/db/user'
-import store from '@/store'
+<script lang="ts" setup>
+import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, info } from '@/utils/logger'
-import Socket from '@/network/signaler/websocket'
+import { User } from '@/db/user'
 
-export default defineComponent({
-    name: 'Comoc-Web',
-    setup() {
-        // init WebRTCChannel
-        WebRTCChannel.init(
-            store.state.currentUser.username,
-            new Socket(store.state.currentUser.username)
-        )
+const props = defineProps<{
+    currentUser: User
+}>()
+let contacts = ref<User[]>([])
+User.findAll()
+    .then((users) =>
+        users.filter((user) => user.username !== props.currentUser.username)
+    )
+    .then((c) => {
+        contacts.value = c
+    })
 
-        let contacts = ref<User[]>([])
-        User.findAll()
-            .then((users) =>
-                users.filter(
-                    (user) => user.username !== store.state.currentUser.username
-                )
-            )
-            .then((c) => {
-                contacts.value = c
-            })
+const activeContactID = ref<string>('')
+const inputText = ref<string>('')
+const msgList = ref<Message[]>([])
+const currentContact = computed(() =>
+    contacts.value.find((c) => c.username === activeContactID.value)
+)
 
-        const activeContactID = ref<string>('')
-        const inputText = ref<string>('')
-        const msgList = ref<Message[]>([])
-        const currentContact = computed(() =>
-            contacts.value.find((c) => c.username === activeContactID.value)
-        )
+function selectContact(contact: User) {
+    debug('select contact', contact)
+    activeContactID.value = contact.username
 
-        function selectContact(contact: User) {
-            debug('select contact', contact)
-            activeContactID.value = contact.username
-
-            Message.getHistoryWith(
-                store.state.currentUser.username,
-                contact.username
-            ).then((messages) => {
-                msgList.value = messages
-            })
-
-            let channel = new WebRTCChannel(contact.username)
-            debug('get channel', channel)
-
-            channel.onMessage((msg) => {
-                info('receive message', msg)
-                msgList.value.push(msg)
-            })
+    Message.getHistoryWith(props.currentUser.username, contact.username).then(
+        (messages) => {
+            msgList.value = messages
         }
+    )
 
-        function send() {
-            let channel = new WebRTCChannel(activeContactID.value)
+    let channel = new WebRTCChannel(contact.username)
+    debug('get channel', channel)
 
-            if (!channel) {
-                console.warn('send without channel')
-                return
-            }
+    channel.onMessage((msg) => {
+        info('receive message', msg)
+        msgList.value.push(msg)
+    })
+}
 
-            if (!currentContact.value) {
-                console.warn('send without currentContract')
-                return
-            }
+function send() {
+    let channel = new WebRTCChannel(activeContactID.value)
 
-            const msg = new Message(
-                MessageType.Text,
-                inputText.value,
-                store.state.currentUser.username,
-                currentContact.value.username
-            )
+    if (!channel) {
+        console.warn('send without channel')
+        return
+    }
 
-            msg.save()
-            channel.send(msg)
+    if (!currentContact.value) {
+        console.warn('send without currentContract')
+        return
+    }
 
-            inputText.value = ''
-        }
+    const msg = new Message(
+        MessageType.Text,
+        inputText.value,
+        props.currentUser.username,
+        currentContact.value.username
+    )
 
-        return {
-            contacts,
-            activeContactID,
-            inputText,
-            msgList,
-            selectContact,
-            send,
-        }
-    },
-})
+    msg.save()
+    channel.send(msg)
+
+    inputText.value = ''
+}
 </script>
 <style lang="scss">
 @import '../styles/base/variable';

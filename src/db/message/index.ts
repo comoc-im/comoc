@@ -26,6 +26,11 @@ export default class Message extends Model {
     }
 
     static init(db: IDBDatabase): void {
+        try {
+            db.deleteObjectStore(MESSAGE_STORE_NAME)
+        } catch (err) {
+            //
+        }
         const store = db.createObjectStore(MESSAGE_STORE_NAME, {
             autoIncrement: true,
         })

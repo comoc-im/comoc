@@ -1,5 +1,9 @@
 <template>
     <div class="comoc-web">
+        <div class="panel">
+            <button type="button" @click="copyAddress">Copy Address</button>
+            <button type="button" @click="addContact">Add Contact</button>
+        </div>
         <div class="contacts">
             <div
                 v-for="contact in contacts"
@@ -21,8 +25,8 @@
                     :class="[
                         'msg',
                         {
-                            target: msg.to === props.currentUser.username,
-                            self: msg.from === props.currentUser.username,
+                            target: msg.to === currentUser.username,
+                            self: msg.from === currentUser.username,
                         },
                     ]"
                 >
@@ -45,21 +49,17 @@
 import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
-import { debug, info } from '@/utils/logger'
+import { debug, error, info } from '@/utils/logger'
 import { User } from '@/db/user'
+import { fromAddress, toAddress } from '@/id'
+import { useStore } from 'vuex'
+import { CommonStore } from '@/store'
+import { notice } from '@/utils/notification'
+import Contact from '@/db/contact'
 
-const props = defineProps<{
-    currentUser: User
-}>()
-let contacts = ref<User[]>([])
-User.findAll()
-    .then((users) =>
-        users.filter((user) => user.username !== props.currentUser.username)
-    )
-    .then((c) => {
-        contacts.value = c
-    })
-
+const store = useStore<CommonStore>()
+const { currentId, currentUser } = store.state
+const contacts = ref<Contact[]>([])
 const activeContactID = ref<string>('')
 const inputText = ref<string>('')
 const msgList = ref<Message[]>([])
@@ -67,11 +67,50 @@ const currentContact = computed(() =>
     contacts.value.find((c) => c.username === activeContactID.value)
 )
 
+if (!currentId || !currentUser) {
+    throw new Error('sign in needed')
+}
+
+refreshContacts()
+
+async function refreshContacts() {
+    Contact.findAll().then((cs) => (contacts.value = cs))
+}
+
+async function copyAddress(): Promise<void> {
+    if (!currentId) {
+        return
+    }
+    const address = await toAddress(currentId.publicKey)
+    navigator.clipboard.writeText(address)
+}
+
+async function addContact(): Promise<void> {
+    const address = window.prompt(`Insert new contact's address`)
+    if (!address) {
+        notice(`empty address`)
+        return
+    }
+    const publicKey = await fromAddress(address)
+    if (!publicKey) {
+        notice(`Invalid address`)
+        return
+    }
+
+    const contact = new Contact(publicKey)
+    await contact.save()
+    refreshContacts()
+}
+
 function selectContact(contact: User) {
     debug('select contact', contact)
     activeContactID.value = contact.username
 
-    Message.getHistoryWith(props.currentUser.username, contact.username).then(
+    if (!currentUser) {
+        return
+    }
+
+    Message.getHistoryWith(currentUser.username, contact.username).then(
         (messages) => {
             msgList.value = messages
         }
@@ -89,6 +128,11 @@ function selectContact(contact: User) {
 function send() {
     let channel = new WebRTCChannel(activeContactID.value)
 
+    if (!currentUser) {
+        error(`not signed in`)
+        return
+    }
+
     if (!channel) {
         console.warn('send without channel')
         return
@@ -102,7 +146,7 @@ function send() {
     const msg = new Message(
         MessageType.Text,
         inputText.value,
-        props.currentUser.username,
+        currentUser.username,
         currentContact.value.username
     )
 
@@ -112,12 +156,20 @@ function send() {
     inputText.value = ''
 }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '../styles/base/variable';
 
 .comoc-web {
     display: flex;
     height: 100vh;
+
+    .panel {
+        width: 80px;
+        border-right: 1px solid lightgrey;
+
+        .address {
+        }
+    }
 
     .contacts {
         min-width: 15vw;

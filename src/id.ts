@@ -1,5 +1,6 @@
 import { SessionStorageKeys } from '@/constants'
 import { debug, error } from '@/utils/logger'
+import { buf2hex, hex2buf } from '@/utils/string'
 
 export interface ComocID {
     publicKey: CryptoKey
@@ -13,7 +14,7 @@ interface ComocIdCache {
 
 export async function createId(): Promise<ComocID> {
     try {
-        const keyPair = await crypto.subtle.generateKey(
+        const keyPair = await window.crypto.subtle.generateKey(
             {
                 name: 'ECDSA',
                 namedCurve: 'P-384',
@@ -167,4 +168,28 @@ export async function unwrapPrivateKey(
         true, // extractability of key to unwrap
         ['sign'] // key usages for key to unwrap
     )
+}
+
+export async function toAddress(publicKey: CryptoKey): Promise<string> {
+    const raw = await window.crypto.subtle.exportKey('raw', publicKey)
+    return buf2hex(raw)
+}
+
+export async function fromAddress(hex: string): Promise<CryptoKey | null> {
+    try {
+        const buffer = hex2buf(hex)
+        return await window.crypto.subtle.importKey(
+            'raw',
+            buffer,
+            {
+                name: 'ECDSA',
+                namedCurve: 'P-384',
+            },
+            true,
+            ['verify']
+        )
+    } catch (err) {
+        error(`import from hex string fail`, err, hex)
+        return null
+    }
 }

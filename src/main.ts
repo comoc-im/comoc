@@ -5,7 +5,7 @@ import { RouterView } from 'vue-router'
 import 'element-plus/dist/index.css'
 import './styles/index.scss'
 import router from './router'
-import store from './store'
+import store, { recoverSessionState } from './store'
 import dbReady from '@/db'
 import { filters } from '@/filters'
 // import './registerServiceWorker'
@@ -31,6 +31,7 @@ if (process.env.NODE_ENV !== 'development') {
  */
 ;(async () => {
     await dbReady
+    await recoverSessionState()
 
     app.use(filters)
     app.use(store)

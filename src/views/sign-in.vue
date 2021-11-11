@@ -52,15 +52,15 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { error, todo, warn } from '@/utils/logger'
 import { download } from '@/utils/file'
-import { createId, stringify, wrapPrivateKey } from '@/id'
+import { createId, setCurrentId, stringify, wrapPrivateKey } from '@/id'
 import { mutations } from '@/store/mutations'
-import { commonStore } from '@/store'
+import { CommonStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser } from '@/db/user'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
-const store = useStore<commonStore>()
+const store = useStore<CommonStore>()
 const router = useRouter()
 const username = ref(usernameCache)
 const password = ref('')
@@ -81,6 +81,7 @@ async function create() {
         const id = await createId()
         download(await stringify(id), `${username.value}.id`)
         store.commit(mutations.SET_CURRENT_ID, id)
+        setCurrentId(id)
     } catch (err) {
         error(`create fail, ${err}`)
         ElMessage.error(`create fail, ${err}`)

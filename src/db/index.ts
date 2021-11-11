@@ -3,6 +3,7 @@ import { User } from '@/db/user'
 import Message from '@/db/message'
 import Model from '@/db/base'
 import { debug, error } from '@/utils/logger'
+import Contact from '@/db/contact'
 
 /**
  * Open and init indexedDB globally
@@ -27,6 +28,7 @@ const dbReady: Promise<IDBDatabase> = new Promise(function (resolve, reject) {
         const db = request.result
         User.init(db)
         Message.init(db)
+        Contact.init(db)
     })
 })
 

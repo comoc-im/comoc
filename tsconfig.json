@@ -17,6 +17,7 @@
       "dom"
     ],
     "types": [
+      "node",
       "vite/client"
     ],
     "baseUrl": ".",

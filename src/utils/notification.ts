@@ -1,6 +1,6 @@
 import { error } from '@/utils/logger'
 
-export function notice(msg: string): void {
+export function notice(level: 'error' | 'warn' | 'info', msg: string): void {
     // Let's check if the browser supports notifications
     if (!('Notification' in window)) {
         error('This browser does not support desktop notification')
@@ -9,7 +9,7 @@ export function notice(msg: string): void {
     // Let's check whether notification permissions have already been granted
     else if (Notification.permission === 'granted') {
         // If it's okay let's create a notification
-        new Notification(msg)
+        new Notification(`${level}: ${msg}`)
     }
 
     // Otherwise, we need to ask the user for permission
@@ -17,7 +17,7 @@ export function notice(msg: string): void {
         Notification.requestPermission().then(function (permission) {
             // If the user accepts, let's create a notification
             if (permission === 'granted') {
-                new Notification('Hi there!')
+                new Notification(`${level}: ${msg}`)
             }
         })
     }

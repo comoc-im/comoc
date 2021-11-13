@@ -49,7 +49,6 @@
 import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { error, todo, warn } from '@/utils/logger'
 import { download } from '@/utils/file'
 import { createId, setCurrentId, stringify, wrapPrivateKey } from '@/id'
@@ -57,6 +56,7 @@ import { mutations } from '@/store/mutations'
 import { CommonStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser } from '@/db/user'
+import { notice } from '@/utils/notification'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -73,7 +73,7 @@ function goToComoc() {
 async function create() {
     if (username.value === '') {
         warn('username necessary')
-        ElMessage.warning('username necessary')
+        notice('warn', 'username necessary')
         return
     }
 
@@ -84,7 +84,7 @@ async function create() {
         setCurrentId(id)
     } catch (err) {
         error(`create fail, ${err}`)
-        ElMessage.error(`create fail, ${err}`)
+        notice('error', `create fail, ${err}`)
     }
 
     // const passwordHash = await derivePasswordKey(this.password)
@@ -97,12 +97,12 @@ async function create() {
 async function signIn() {
     if (!store.state.currentId) {
         warn('no comoc id')
-        ElMessage.warning('no comoc id')
+        notice('warn', 'no comoc id')
         return
     }
     if (password.value === '') {
         warn('password necessary')
-        ElMessage.warning('password necessary')
+        notice('warn', 'password necessary')
         return
     }
 
@@ -126,7 +126,7 @@ async function signIn() {
         goToComoc()
     } catch (err) {
         error(`sign in fail, ${err}`)
-        ElMessage.error(`sign in fail, ${err}`)
+        notice('error', `sign in fail, ${err}`)
     }
 }
 

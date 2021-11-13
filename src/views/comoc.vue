@@ -88,12 +88,12 @@ async function copyAddress(): Promise<void> {
 async function addContact(): Promise<void> {
     const address = window.prompt(`Insert new contact's address`)
     if (!address) {
-        notice(`empty address`)
+        notice('warn', `empty address`)
         return
     }
     const publicKey = await fromAddress(address)
     if (!publicKey) {
-        notice(`Invalid address`)
+        notice('warn', `Invalid address`)
         return
     }
 

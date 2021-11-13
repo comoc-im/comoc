@@ -1,11 +1,11 @@
 <template>
     <div class="login">
         <div class="auth-lock">
-            <p v-if="$store.getters.isSignedIn">
+            <p v-if="store.getters.isSignedIn">
                 already signed in, jumping now...
             </p>
             <form v-else>
-                <template v-if="!$store.state.currentId">
+                <template v-if="!store.state.currentId">
                     <label>
                         Username
                         <br />
@@ -50,13 +50,13 @@ import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { error, todo, warn } from '@/utils/logger'
-import { download } from '@/utils/file'
 import { createId, setCurrentId, stringify, wrapPrivateKey } from '@/id'
 import { mutations } from '@/store/mutations'
 import { CommonStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser } from '@/db/user'
 import { notice } from '@/utils/notification'
+import { download } from '@/utils/file'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''

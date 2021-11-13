@@ -1,9 +1,14 @@
 import Model from '@/db/base'
 import { CONTACT_STORE_NAME } from '@/db/store-names'
 
-export default class Contact extends Model {
-    username = ''
-    publicKey: CryptoKey
+export interface Contact {
+    username: string
+    address: string
+}
+
+export class ContactModel extends Model implements Contact {
+    username: string
+    address: string
 
     static init(db: IDBDatabase): void {
         try {
@@ -14,7 +19,7 @@ export default class Contact extends Model {
         const contactStore = db.createObjectStore(CONTACT_STORE_NAME, {
             autoIncrement: true,
         })
-        contactStore.createIndex('publicKey', 'publicKey', { unique: true })
+        contactStore.createIndex('address', 'address', { unique: true })
     }
 
     async save(): Promise<void> {
@@ -25,12 +30,10 @@ export default class Contact extends Model {
         return super.getAll<Contact>(CONTACT_STORE_NAME)
     }
 
-    constructor(publicKey: CryptoKey) {
+    constructor(address: string, username = address) {
         super(CONTACT_STORE_NAME)
 
-        this.publicKey = publicKey
-
-        // TODO try connect the user, then fetch hers info
-        this.username = ''
+        this.address = address
+        this.username = username
     }
 }

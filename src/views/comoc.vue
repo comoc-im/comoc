@@ -7,9 +7,9 @@
         <div class="contacts">
             <div
                 v-for="contact in contacts"
-                :key="contact.username"
+                :key="contact.address"
                 :title="'chat with ' + contact.username"
-                :class="{ active: activeContactID === contact.username }"
+                :class="{ active: activeContactID === contact.address }"
                 class="contact"
                 @click="selectContact(contact)"
             >
@@ -21,12 +21,12 @@
             <div class="chat-view">
                 <div
                     v-for="msg in msgList"
-                    :key="msg"
+                    :key="msg.id"
                     :class="[
                         'msg',
                         {
-                            target: msg.to === currentUser.username,
-                            self: msg.from === currentUser.username,
+                            target: msg.from === activeContactID,
+                            self: msg.to === activeContactID,
                         },
                     ]"
                 >
@@ -50,13 +50,13 @@ import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info } from '@/utils/logger'
-import { User } from '@/db/user'
 import { fromAddress, toAddress } from '@/id'
 import { useStore } from 'vuex'
 import { CommonStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
-import Contact from '@/db/contact'
+import { Contact, ContactModel } from '@/db/contact'
+import Socket from '@/network/signaler/websocket'
 
 const store = useStore<CommonStore>()
 const { currentId, currentUser } = store.state
@@ -65,17 +65,20 @@ const activeContactID = ref<string>('')
 const inputText = ref<string>('')
 const msgList = ref<Message[]>([])
 const currentContact = computed(() =>
-    contacts.value.find((c) => c.username === activeContactID.value)
+    contacts.value.find((c) => c.address === activeContactID.value)
 )
 
 if (!currentId || !currentUser) {
     throw new Error('sign in needed')
 }
+toAddress(currentId.publicKey).then((address) => {
+    WebRTCChannel.init(address, new Socket(address))
+})
 
 refreshContacts()
 
 async function refreshContacts() {
-    Contact.findAll().then((cs) => (contacts.value = cs))
+    ContactModel.findAll().then((cs) => (contacts.value = cs))
 }
 
 async function copyAddress(): Promise<void> {
@@ -98,26 +101,25 @@ async function addContact(): Promise<void> {
         return
     }
 
-    const contact = new Contact(publicKey)
+    const contact = new ContactModel(address)
     await contact.save()
     refreshContacts()
 }
 
-function selectContact(contact: User) {
+async function selectContact(contact: Contact) {
     debug('select contact', contact)
-    activeContactID.value = contact.username
+    activeContactID.value = contact.address
 
-    if (!currentUser) {
+    if (!currentUser || !currentId) {
         return
     }
 
-    Message.getHistoryWith(currentUser.username, contact.username).then(
-        (messages) => {
-            msgList.value = messages
-        }
-    )
+    const address = await toAddress(currentId.publicKey)
+    Message.getHistoryWith(address, contact.address).then((messages) => {
+        msgList.value = messages
+    })
 
-    let channel = new WebRTCChannel(contact.username)
+    let channel = new WebRTCChannel(contact.address)
     debug('get channel', channel)
 
     channel.onMessage((msg) => {
@@ -126,10 +128,10 @@ function selectContact(contact: User) {
     })
 }
 
-function send() {
+async function send() {
     let channel = new WebRTCChannel(activeContactID.value)
 
-    if (!currentUser) {
+    if (!currentUser || !currentId) {
         error(`not signed in`)
         return
     }
@@ -144,13 +146,15 @@ function send() {
         return
     }
 
+    const address = await toAddress(currentId.publicKey)
     const msg = new Message(
         MessageType.Text,
         inputText.value,
-        currentUser.username,
-        currentContact.value.username
+        address,
+        currentContact.value.address
     )
 
+    msgList.value.push(msg)
     msg.save()
     channel.send(msg)
 

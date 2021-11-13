@@ -32,7 +32,7 @@
                 >
                     <p class="msg-content">{{ msg.payload }}</p>
                     <p class="msg-time">
-                        {{ $filters.toDateTimeStr(msg.timestamp) }}
+                        {{ toDateTimeStr(msg.timestamp) }}
                     </p>
                 </div>
             </div>
@@ -54,6 +54,7 @@ import { User } from '@/db/user'
 import { fromAddress, toAddress } from '@/id'
 import { useStore } from 'vuex'
 import { CommonStore } from '@/store'
+import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
 import Contact from '@/db/contact'
 

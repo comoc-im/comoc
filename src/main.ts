@@ -6,14 +6,12 @@ import './styles/index.scss'
 import router from './router'
 import store, { recoverSessionState } from './store'
 import dbReady from '@/db'
-import { filters } from '@/filters'
 // import './registerServiceWorker'
 const app = createApp(RouterView)
 
 // Vue 开发选项
 if (process.env.NODE_ENV !== 'production') {
     app.config.performance = true
-    // app.config.globalProperties.abc = ''
 }
 if (process.env.NODE_ENV !== 'development') {
     app.config.errorHandler = (err, vm, info) => {
@@ -32,7 +30,6 @@ if (process.env.NODE_ENV !== 'development') {
     await dbReady
     await recoverSessionState()
 
-    app.use(filters)
     app.use(store)
     app.use(router)
     app.mount('#app')

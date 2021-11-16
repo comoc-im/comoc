@@ -1,3 +1,5 @@
+import { Signal } from '@comoc-im/message'
+
 export enum SignalingMessageType {
     Description = 'description',
     Candidate = 'candidate',
@@ -12,7 +14,7 @@ export type SignalingMessage = {
 }
 
 export interface Signaler {
-    send(data: SignalingMessage): void
+    send(data: Signal): void
 
-    onMessage(func: (msg: SignalingMessage) => unknown): Promise<() => void>
+    onMessage(func: (msg: Signal) => unknown): Promise<() => void>
 }

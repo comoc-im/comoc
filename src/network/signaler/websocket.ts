@@ -1,9 +1,6 @@
 import { signalerServerWebSocketUrl } from '@/config'
-import {
-    Signaler,
-    SignalingMessage,
-    SignalingMessageType,
-} from '@/network/signaler/index'
+import { PING, PONG, Signal } from '@comoc-im/message'
+import { Signaler } from '@/network/signaler/index'
 import { debug, error, warn } from '@/utils/logger'
 
 function createWebSocket(username: string) {
@@ -11,9 +8,14 @@ function createWebSocket(username: string) {
         const webSocket = new WebSocket(
             signalerServerWebSocketUrl + `?username=${username}`
         )
+        webSocket.binaryType = 'arraybuffer'
 
         webSocket.addEventListener('open', function () {
             debug('websocket open')
+            setInterval(() => {
+                debug('ping')
+                this.send(new Uint8Array([PING]))
+            }, 5000)
             resolve(webSocket)
         })
 
@@ -21,11 +23,11 @@ function createWebSocket(username: string) {
             error('websocket error', err)
         })
 
-        webSocket.addEventListener('close', function () {
-            warn('websocket close')
+        webSocket.addEventListener('close', function (evt) {
+            warn('websocket close', evt)
         })
 
-        webSocket.addEventListener('message', function (msgEvt) {
+        webSocket.addEventListener('message', function () {
             // debug('websocket message', msgEvt)
         })
     })
@@ -36,24 +38,25 @@ export default class Socket implements Signaler {
 
     constructor(username: string) {
         this.webSocketReady = createWebSocket(username)
-
-        setInterval(() => {
-            this.send({
-                from: username,
-                to: username,
-                type: SignalingMessageType.Heartbeat,
-                payload: '',
-            })
-        }, 5000)
     }
 
-    async onMessage(
-        func: (msg: SignalingMessage) => unknown
-    ): Promise<() => void> {
+    async onMessage(func: (msg: Signal) => unknown): Promise<() => void> {
         const webSocket = await this.webSocketReady
-        const listener = (msg: MessageEvent<string>) => {
-            const data = JSON.parse(msg.data) as SignalingMessage
-            func(data)
+        const listener = (msg: MessageEvent<ArrayBuffer>) => {
+            if (
+                msg.data.byteLength === 1 &&
+                new Uint8Array(msg.data)[0] === PONG
+            ) {
+                debug(`pong`)
+                return
+            }
+
+            try {
+                const signal = Signal.decode(new Uint8Array(msg.data))
+                func(signal)
+            } catch (err) {
+                error(`unrecognized websocket message`, msg.data)
+            }
         }
 
         webSocket.addEventListener('message', listener)
@@ -62,7 +65,7 @@ export default class Socket implements Signaler {
         }
     }
 
-    async send(data: SignalingMessage): Promise<void> {
+    async send(data: Signal): Promise<void> {
         const webSocket = await this.webSocketReady
         // debug('websocket sending', data)
 

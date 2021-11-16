@@ -36,6 +36,11 @@
     "@babel/helper-validator-identifier" "^7.15.7"
     to-fast-properties "^2.0.0"
 
+"@comoc-im/message@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/@comoc-im/message/-/message-0.1.2.tgz#60d5a934021e91dd464b117fe7a3097bbbff4a1d"
+  integrity sha512-QJqEpBKqQ79qWrR2FZDSkVC4/szO0ur/45m1mawAEPs4nf1TYQVmFb1h4cKsyUstVPRstb1ql3nCz2A1qTK9sA==
+
 "@emmetio/abbreviation@^2.2.2":
   version "2.2.2"
   resolved "https://registry.npmjs.org/@emmetio/abbreviation/-/abbreviation-2.2.2.tgz#746762fd9e7a8c2ea604f580c62e3cfe250e6989"

@@ -1,13 +1,11 @@
 import { signalerServerWebSocketUrl } from '@/config'
-import { PING, PONG, Signal } from '@comoc-im/message'
+import { Address, PING, PONG, Signal, SignIn } from '@comoc-im/message'
 import { Signaler } from '@/network/signaler/index'
 import { debug, error, warn } from '@/utils/logger'
 
-function createWebSocket(username: string) {
+function createWebSocket(address: Address) {
     return new Promise<WebSocket>((resolve) => {
-        const webSocket = new WebSocket(
-            signalerServerWebSocketUrl + `?username=${username}`
-        )
+        const webSocket = new WebSocket(signalerServerWebSocketUrl)
         webSocket.binaryType = 'arraybuffer'
 
         webSocket.addEventListener('open', function () {
@@ -16,6 +14,7 @@ function createWebSocket(username: string) {
                 debug('ping')
                 this.send(new Uint8Array([PING]))
             }, 5000)
+            webSocket.send(new SignIn(address).encode())
             resolve(webSocket)
         })
 
@@ -36,8 +35,8 @@ function createWebSocket(username: string) {
 export default class Socket implements Signaler {
     private readonly webSocketReady: Promise<WebSocket>
 
-    constructor(username: string) {
-        this.webSocketReady = createWebSocket(username)
+    constructor(address: Address) {
+        this.webSocketReady = createWebSocket(address)
     }
 
     async onMessage(func: (msg: Signal) => unknown): Promise<() => void> {
@@ -69,6 +68,6 @@ export default class Socket implements Signaler {
         const webSocket = await this.webSocketReady
         // debug('websocket sending', data)
 
-        webSocket.send(JSON.stringify(data))
+        webSocket.send(data.encode())
     }
 }

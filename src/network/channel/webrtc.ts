@@ -1,8 +1,9 @@
 import { dataChannelLabel } from '@/config'
-import { Signaler, SignalingMessageType } from '@/network/signaler'
+import { Signaler } from '@/network/signaler'
 import Message, { MessageType } from '@/db/message'
 import { Channel } from '@/network/channel/index'
-import { debug } from '@/utils/logger'
+import { debug, error, warn } from '@/utils/logger'
+import { Address, Signal } from '@comoc-im/message'
 
 interface ConnectionConfig {
     pc: RTCPeerConnection
@@ -10,6 +11,36 @@ interface ConnectionConfig {
     ignoreOffer: boolean
     polite: boolean
     datachannel: Promise<RTCDataChannel>
+}
+
+enum SignalingMessageType {
+    Description = 'description',
+    Candidate = 'candidate',
+}
+
+type SignalPayload = {
+    type: SignalingMessageType
+    payload: string
+}
+
+async function encode(msg: SignalPayload): Promise<Uint8Array> {
+    return new Uint8Array(
+        await new Blob([JSON.stringify(msg)], {
+            type: 'application/json',
+        }).arrayBuffer()
+    )
+}
+
+async function decode(buffer: ArrayBuffer): Promise<SignalPayload | null> {
+    try {
+        const text = await new Blob([buffer], {
+            type: 'application/json',
+        }).text()
+        return JSON.parse(text) as SignalPayload
+    } catch (err) {
+        error('parse signal payload fail', err, buffer)
+        return null
+    }
 }
 
 const stunServers = [
@@ -40,30 +71,39 @@ const config = {
 export class WebRTCChannel implements Channel {
     private static signaler: Signaler
     private static readonly connectionCache = new Map<
-        string,
+        Address,
         ConnectionConfig
     >()
-    private static username: string
+    private static address: Address
     private listener: ((msg: MessageEvent<string>) => unknown) | null = null
-    private readonly targetUserID: string
+    private readonly targetUserID: Address
 
-    constructor(targetUserID: string) {
+    constructor(targetUserID: Address) {
         this.targetUserID = targetUserID
         WebRTCChannel.getConnection(targetUserID)
     }
 
-    public static init(username: string, signaler: Signaler): void {
-        this.username = username
+    public static init(address: Address, signaler: Signaler): void {
+        this.address = address
         // init signaler
         this.signaler = signaler
         // cache all RTC offer descriptions
-        this.signaler.onMessage(async ({ type, payload, from }) => {
+        this.signaler.onMessage(async ({ payload, from, to }) => {
+            if (to !== this.address) {
+                error('signal from other address', to)
+                return
+            }
+
             try {
-                switch (type) {
+                const signal = await decode(payload)
+                if (!signal) {
+                    return
+                }
+                switch (signal.type) {
                     case SignalingMessageType.Description: {
                         const cc = await WebRTCChannel.getConnection(from)
                         const description = JSON.parse(
-                            payload
+                            signal.payload
                         ) as RTCSessionDescriptionInit
                         debug('receive description', description)
 
@@ -82,12 +122,18 @@ export class WebRTCChannel implements Channel {
                             await cc.pc.setLocalDescription()
 
                             debug('send description answer', description)
-                            this.signaler.send({
-                                from: this.username,
-                                to: from,
-                                type: SignalingMessageType.Description,
-                                payload: JSON.stringify(cc.pc.localDescription),
-                            })
+                            this.signaler.send(
+                                new Signal(
+                                    this.address,
+                                    from,
+                                    await encode({
+                                        type: SignalingMessageType.Description,
+                                        payload: JSON.stringify(
+                                            cc.pc.localDescription
+                                        ),
+                                    })
+                                )
+                            )
                         } else if (description.type === 'answer') {
                             await cc.pc.setRemoteDescription(description)
                         }
@@ -96,7 +142,9 @@ export class WebRTCChannel implements Channel {
                     }
                     case SignalingMessageType.Candidate: {
                         const cc = await WebRTCChannel.getConnection(from)
-                        const candidate = JSON.parse(payload) as RTCIceCandidate
+                        const candidate = JSON.parse(
+                            signal.payload
+                        ) as RTCIceCandidate
                         try {
                             await cc.pc.addIceCandidate(candidate)
                         } catch (err) {
@@ -107,23 +155,23 @@ export class WebRTCChannel implements Channel {
                     }
                 }
             } catch (err) {
-                console.error(err)
+                error(err)
             }
         })
     }
 
     private static async getConnection(
-        targetUserID: string
+        targetAddress: Address
     ): Promise<ConnectionConfig> {
-        const con = WebRTCChannel.connectionCache.get(targetUserID)
+        const con = WebRTCChannel.connectionCache.get(targetAddress)
         if (con) {
-            debug('use connection from cache', targetUserID)
+            debug('use connection from cache', targetAddress)
             return con
         }
 
-        debug('create connection for', targetUserID)
+        warn('create connection for', targetAddress)
         const polite =
-            [this.username, targetUserID].sort().pop() === this.username
+            [this.address, targetAddress].sort().pop() === this.address
         const pc = new RTCPeerConnection(config)
 
         pc.onnegotiationneeded = async () => {
@@ -132,28 +180,36 @@ export class WebRTCChannel implements Channel {
                 newCC.makingOffer = true
                 await newCC.pc.setLocalDescription()
                 debug('send description offer', newCC.pc.localDescription)
-                this.signaler.send({
-                    from: this.username,
-                    to: targetUserID,
-                    type: SignalingMessageType.Description,
-                    payload: JSON.stringify(newCC.pc.localDescription),
-                })
+                this.signaler.send(
+                    new Signal(
+                        this.address,
+                        targetAddress,
+                        await encode({
+                            type: SignalingMessageType.Description,
+                            payload: JSON.stringify(newCC.pc.localDescription),
+                        })
+                    )
+                )
             } catch (err) {
-                console.error(err)
+                error(err)
             } finally {
                 newCC.makingOffer = false
             }
         }
 
-        pc.onicecandidate = ({ candidate }) => {
+        pc.onicecandidate = async ({ candidate }) => {
             debug('onicecandidate', candidate)
             candidate !== null &&
-                this.signaler.send({
-                    from: this.username,
-                    to: targetUserID,
-                    type: SignalingMessageType.Candidate,
-                    payload: JSON.stringify(candidate),
-                })
+                this.signaler.send(
+                    new Signal(
+                        this.address,
+                        targetAddress,
+                        await encode({
+                            type: SignalingMessageType.Candidate,
+                            payload: JSON.stringify(candidate),
+                        })
+                    )
+                )
         }
 
         // polite peer should wait datachannel event
@@ -210,7 +266,7 @@ export class WebRTCChannel implements Channel {
             polite,
             datachannel,
         }
-        WebRTCChannel.connectionCache.set(targetUserID, newCC)
+        WebRTCChannel.connectionCache.set(targetAddress, newCC)
         return newCC
     }
 

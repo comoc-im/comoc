@@ -3,6 +3,8 @@
  * TODO:
  *  data security: encryption before persistence.
  */
+import { error, log } from '@/utils/logger'
+
 export default abstract class Model {
     protected static db: IDBDatabase
     private readonly storeName: string
@@ -83,8 +85,8 @@ export default abstract class Model {
             const addReq = trans.objectStore(this.storeName).put(this)
 
             addReq.onerror = function (err: Event) {
-                console.log('error storing data')
-                console.error(err)
+                log('error storing data')
+                error(err)
                 reject()
             }
 

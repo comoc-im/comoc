@@ -62,7 +62,6 @@ export class User extends Model {
                 password,
                 userInDB.passwordHash
             )
-            console.log(isMatch, password, userInDB.passwordHash)
             if (isMatch) {
                 return userInDB
             }

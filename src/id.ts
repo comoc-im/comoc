@@ -1,6 +1,6 @@
 import { SessionStorageKeys } from '@/constants'
 import { debug, error } from '@/utils/logger'
-import { buf2hex, hex2buf } from '@/utils/string'
+import { Address, addressToBytes, bytesToAddress } from '@comoc-im/message'
 
 export interface ComocID {
     publicKey: CryptoKey
@@ -170,14 +170,17 @@ export async function unwrapPrivateKey(
     )
 }
 
-export async function toAddress(publicKey: CryptoKey): Promise<string> {
+export async function toAddress(publicKey: CryptoKey): Promise<Address> {
     const raw = await window.crypto.subtle.exportKey('raw', publicKey)
-    return buf2hex(raw)
+    const bytes = new Uint8Array(raw)
+    const address = bytesToAddress(bytes)
+    debug(address)
+    return address
 }
 
-export async function fromAddress(hex: string): Promise<CryptoKey | null> {
+export async function fromAddress(address: string): Promise<CryptoKey | null> {
     try {
-        const buffer = hex2buf(hex)
+        const buffer = addressToBytes(address)
         return await window.crypto.subtle.importKey(
             'raw',
             buffer,
@@ -189,7 +192,7 @@ export async function fromAddress(hex: string): Promise<CryptoKey | null> {
             ['verify']
         )
     } catch (err) {
-        error(`import from hex string fail`, err, hex)
+        error(`import from hex string fail`, err, address)
         return null
     }
 }

@@ -37,7 +37,11 @@
                 </div>
             </div>
             <div class="chat-input">
-                <textarea v-model="inputText" class="chat-textarea"></textarea>
+                <textarea
+                    v-model="inputText"
+                    class="chat-textarea"
+                    @keydown.enter="send"
+                ></textarea>
                 <button class="send-btn" type="button" @click="send">
                     Send
                 </button>
@@ -49,7 +53,7 @@
 import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
-import { debug, error, info } from '@/utils/logger'
+import { debug, error, info, warn } from '@/utils/logger'
 import { fromAddress, toAddress } from '@/id'
 import { useStore } from 'vuex'
 import { CommonStore } from '@/store'
@@ -57,11 +61,12 @@ import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
 import { Contact, ContactModel } from '@/db/contact'
 import Socket from '@/network/signaler/websocket'
+import { Address } from '@comoc-im/message'
 
 const store = useStore<CommonStore>()
 const { currentId, currentUser } = store.state
 const contacts = ref<Contact[]>([])
-const activeContactID = ref<string>('')
+const activeContactID = ref<Address>('')
 const inputText = ref<string>('')
 const msgList = ref<Message[]>([])
 const currentContact = computed(() =>
@@ -137,12 +142,12 @@ async function send() {
     }
 
     if (!channel) {
-        console.warn('send without channel')
+        warn('send without channel')
         return
     }
 
     if (!currentContact.value) {
-        console.warn('send without currentContract')
+        warn('send without currentContract')
         return
     }
 
@@ -181,6 +186,7 @@ async function send() {
         max-width: 300px;
 
         .contact {
+            word-break: break-all;
             padding: 12px;
             cursor: pointer;
 

@@ -28,6 +28,30 @@ export default abstract class Model {
         })
     }
 
+    protected static async getAllBy<T>(
+        storeName: string,
+        queryFunc: (item: T) => boolean
+    ): Promise<T[]> {
+        return new Promise((resolve) => {
+            const trans = this.db.transaction([storeName], 'readonly')
+            const os = trans.objectStore(storeName)
+            const req = os.openCursor()
+            const result: T[] = []
+            req.onsuccess = () => {
+                const cursor = req.result
+                if (cursor) {
+                    const match = queryFunc(cursor.value)
+                    if (match) {
+                        result.push(cursor.value)
+                    }
+                    cursor.continue()
+                } else {
+                    resolve(result)
+                }
+            }
+        })
+    }
+
     /**
      * Read record with index
      * @param {String} storeName

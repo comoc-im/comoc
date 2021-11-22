@@ -78,12 +78,11 @@ if (!currentId || !currentUser) {
 }
 toAddress(currentId.publicKey).then((address) => {
     WebRTCChannel.init(address, new Socket(address))
+    refreshContacts(address)
 })
 
-refreshContacts()
-
-async function refreshContacts() {
-    ContactModel.findAll().then((cs) => (contacts.value = cs))
+async function refreshContacts(owner: Address) {
+    ContactModel.findAll(owner).then((cs) => (contacts.value = cs))
 }
 
 async function copyAddress(): Promise<void> {
@@ -106,9 +105,17 @@ async function addContact(): Promise<void> {
         return
     }
 
-    const contact = new ContactModel(address)
+    if (!currentUser || !currentId) {
+        error(`not signed in`)
+        return
+    }
+
+    const contact = await toAddress(currentId.publicKey).then(
+        (ownerAddress) => new ContactModel(address as Address, ownerAddress)
+    )
+
     await contact.save()
-    refreshContacts()
+    refreshContacts(contact.owner)
 }
 
 async function selectContact(contact: Contact) {

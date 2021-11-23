@@ -22,6 +22,7 @@
                 <div
                     v-for="msg in msgList"
                     :key="msg.id"
+                    :style="{ color: contactColor() }"
                     :class="[
                         'msg',
                         {
@@ -62,6 +63,7 @@ import { notice } from '@/utils/notification'
 import { Contact, ContactModel } from '@/db/contact'
 import Socket from '@/network/signaler/websocket'
 import { Address } from '@comoc-im/message'
+import randomColor from 'randomcolor'
 
 const store = useStore<CommonStore>()
 const { currentId, currentUser } = store.state
@@ -83,6 +85,13 @@ toAddress(currentId.publicKey).then((address) => {
 
 async function refreshContacts(owner: Address) {
     ContactModel.findAll(owner).then((cs) => (contacts.value = cs))
+}
+
+function contactColor(): string {
+    return randomColor({
+        seed: activeContactID.value,
+        luminosity: 'dark',
+    })
 }
 
 async function copyAddress(): Promise<void> {

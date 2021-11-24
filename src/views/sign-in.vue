@@ -4,6 +4,18 @@
             <p v-if="store.getters.isSignedIn">
                 already signed in, jumping now...
             </p>
+            <div v-else-if="localUsers.length !== 0">
+                <a
+                    class="local-user"
+                    v-for="user in localUsers"
+                    :key="user.publicKey"
+                    :title="'Sign in with ' + user.username"
+                    >{{ user.username || user.publicKey }}</a
+                >
+                <br />
+                <br />
+                <button type="button" @click="localUsers = []">sign up</button>
+            </div>
             <form v-else>
                 <template v-if="!store.state.currentId">
                     <label>
@@ -54,7 +66,7 @@ import { createId, setCurrentId, stringify, wrapPrivateKey } from '@/id'
 import { mutations } from '@/store/mutations'
 import { CommonStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
-import { createUser } from '@/db/user'
+import { createUser, User, UserModel } from '@/db/user'
 import { notice } from '@/utils/notification'
 import { download } from '@/utils/file'
 
@@ -64,6 +76,11 @@ const store = useStore<CommonStore>()
 const router = useRouter()
 const username = ref(usernameCache)
 const password = ref('')
+const localUsers = ref<User[]>([])
+
+UserModel.findAll().then((users) => {
+    localUsers.value = users
+})
 
 function goToComoc() {
     window.sessionStorage.removeItem(SessionStorageKeys.Username)
@@ -168,6 +185,19 @@ if (store.getters.isSignedIn) {
         border-radius: 6px;
         padding: 2em 2em 3em;
         border: 1px solid lightgrey;
+    }
+
+    .local-user {
+        display: inline-block;
+        padding: 0.5em 1em;
+        border: 1px solid lightgrey;
+        box-shadow: 0 0 5px lightgrey;
+        cursor: pointer;
+
+        &:hover {
+            border: 1px solid grey;
+            box-shadow: 0 0 5px 1px lightgrey;
+        }
     }
 }
 </style>

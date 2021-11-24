@@ -2,7 +2,12 @@ import { USER_STORE_NAME } from '@/db/store-names'
 import { derivePassword, verifyPassword } from '@/db/user/crypto'
 import Model from '@/db/base'
 
-export class User extends Model {
+export interface User {
+    username: string
+    publicKey: CryptoKey
+}
+
+export class UserModel extends Model implements User {
     public username: string
     public publicKey: CryptoKey
     private privateKey: unknown
@@ -48,7 +53,7 @@ export class User extends Model {
         username: string,
         password: string
     ): Promise<User | null> {
-        const users = await super.getAllByIndex<User>(
+        const users = await super.getAllByIndex<UserModel>(
             USER_STORE_NAME,
             'username',
             username
@@ -85,7 +90,7 @@ export async function createUser(
     publicKey: CryptoKey,
     privateKey: unknown
 ): Promise<User> {
-    const user = new User({
+    const user = new UserModel({
         username,
         passwordHash: await derivePassword(password),
         publicKey,

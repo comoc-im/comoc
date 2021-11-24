@@ -1,5 +1,5 @@
 import { dbName, dbVersion } from '@/config'
-import { User } from '@/db/user'
+import { UserModel } from '@/db/user'
 import Message from '@/db/message'
 import Model from '@/db/base'
 import { debug, error } from '@/utils/logger'
@@ -26,7 +26,7 @@ const dbReady: Promise<IDBDatabase> = new Promise(function (resolve, reject) {
     request.addEventListener('upgradeneeded', function () {
         debug('upgradeneeded')
         const db = request.result
-        User.init(db)
+        UserModel.init(db)
         Message.init(db)
         ContactModel.init(db)
     })

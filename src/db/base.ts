@@ -60,7 +60,7 @@ export default abstract class Model {
      * @param {number} count
      * @return {Promise<Object>}
      */
-    protected static async getAllByIndex<T extends Model>(
+    protected static async getAllByIndex<T>(
         storeName: string,
         index: string,
         query?: IDBValidKey | IDBKeyRange | null,

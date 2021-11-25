@@ -8,7 +8,7 @@
                 <a
                     class="local-user"
                     v-for="user in localUsers"
-                    :key="user.publicKey"
+                    :key="user.username"
                     :title="'Sign in with ' + user.username"
                     >{{ user.username || user.publicKey }}</a
                 >

@@ -1,26 +1,31 @@
+import { Address } from '@comoc-im/message'
 import { USER_STORE_NAME } from '@/db/store-names'
 import { derivePassword, verifyPassword } from '@/db/user/crypto'
 import Model from '@/db/base'
+import { toAddress } from '@/id'
 
 export interface User {
     username: string
-    publicKey: CryptoKey
+    address: Address
 }
 
 export class UserModel extends Model implements User {
     public username: string
-    public publicKey: CryptoKey
+    public address: Address
+    private publicKey: CryptoKey
     private privateKey: unknown
     private passwordHash: string
 
     constructor({
         username,
         passwordHash,
+        address,
         publicKey,
         privateKey,
     }: {
         username: string
         publicKey: CryptoKey
+        address: string
         passwordHash: string
         privateKey: unknown
     }) {
@@ -29,6 +34,7 @@ export class UserModel extends Model implements User {
         this.username = username
         this.passwordHash = passwordHash
         this.publicKey = publicKey
+        this.address = address
         this.privateKey = privateKey
     }
 
@@ -46,7 +52,7 @@ export class UserModel extends Model implements User {
             autoIncrement: true,
         })
         userStore.createIndex('username', 'username', { unique: false })
-        userStore.createIndex('publicKey', 'publicKey', { unique: true })
+        userStore.createIndex('address', 'address', { unique: true })
     }
 
     static async find(
@@ -90,9 +96,11 @@ export async function createUser(
     publicKey: CryptoKey,
     privateKey: unknown
 ): Promise<User> {
+    const address = await toAddress(publicKey)
     const user = new UserModel({
         username,
         passwordHash: await derivePassword(password),
+        address,
         publicKey,
         privateKey,
     })

@@ -55,7 +55,7 @@ import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info, warn } from '@/utils/logger'
-import { fromAddress, toAddress } from '@/id'
+import { fromAddress } from '@/id'
 import { useStore } from 'vuex'
 import { CommonStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
@@ -66,7 +66,7 @@ import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
 
 const store = useStore<CommonStore>()
-const { currentId, currentUser } = store.state
+const { currentUser } = store.state
 const contacts = ref<Contact[]>([])
 const activeContactID = ref<Address>('')
 const inputText = ref<string>('')
@@ -75,13 +75,12 @@ const currentContact = computed(() =>
     contacts.value.find((c) => c.address === activeContactID.value)
 )
 
-if (!currentId || !currentUser) {
+if (!currentUser) {
     throw new Error('sign in needed')
 }
-toAddress(currentId.publicKey).then((address) => {
-    WebRTCChannel.init(address, new Socket(address))
-    refreshContacts(address)
-})
+
+WebRTCChannel.init(currentUser.address, new Socket(currentUser.address))
+refreshContacts(currentUser.address)
 
 async function refreshContacts(owner: Address) {
     ContactModel.findAll(owner).then((cs) => (contacts.value = cs))
@@ -94,13 +93,7 @@ function contactColor(): string {
     })
 }
 
-async function copyAddress(): Promise<void> {
-    if (!currentId) {
-        return
-    }
-    const address = await toAddress(currentId.publicKey)
-    navigator.clipboard.writeText(address)
-}
+const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
 async function addContact(): Promise<void> {
     const address = window.prompt(`Insert new contact's address`)
@@ -114,14 +107,12 @@ async function addContact(): Promise<void> {
         return
     }
 
-    if (!currentUser || !currentId) {
+    if (!currentUser) {
         error(`not signed in`)
         return
     }
 
-    const contact = await toAddress(currentId.publicKey).then(
-        (ownerAddress) => new ContactModel(address as Address, ownerAddress)
-    )
+    const contact = new ContactModel(address as Address, currentUser.address)
 
     await contact.save()
     refreshContacts(contact.owner)
@@ -131,14 +122,15 @@ async function selectContact(contact: Contact) {
     debug('select contact', contact)
     activeContactID.value = contact.address
 
-    if (!currentUser || !currentId) {
+    if (!currentUser) {
         return
     }
 
-    const address = await toAddress(currentId.publicKey)
-    Message.getHistoryWith(address, contact.address).then((messages) => {
-        msgList.value = messages
-    })
+    Message.getHistoryWith(currentUser.address, contact.address).then(
+        (messages) => {
+            msgList.value = messages
+        }
+    )
 
     let channel = new WebRTCChannel(contact.address)
     debug('get channel', channel)
@@ -152,7 +144,7 @@ async function selectContact(contact: Contact) {
 async function send() {
     let channel = new WebRTCChannel(activeContactID.value)
 
-    if (!currentUser || !currentId) {
+    if (!currentUser) {
         error(`not signed in`)
         return
     }
@@ -167,11 +159,10 @@ async function send() {
         return
     }
 
-    const address = await toAddress(currentId.publicKey)
     const msg = new Message(
         MessageType.Text,
         inputText.value,
-        address,
+        currentUser.address,
         currentContact.value.address
     )
 

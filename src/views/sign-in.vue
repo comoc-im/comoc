@@ -8,9 +8,9 @@
                 <a
                     class="local-user"
                     v-for="user in localUsers"
-                    :key="user.username"
+                    :key="user.address"
                     :title="'Sign in with ' + user.username"
-                    >{{ user.username || user.publicKey }}</a
+                    >{{ user.username || user.address }}</a
                 >
                 <br />
                 <br />

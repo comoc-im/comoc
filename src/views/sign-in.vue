@@ -69,6 +69,7 @@ import { SessionStorageKeys } from '@/constants'
 import { createUser, User, UserModel } from '@/db/user'
 import { notice } from '@/utils/notification'
 import { download } from '@/utils/file'
+import { Actions } from '@/store/actions'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -129,8 +130,6 @@ async function signIn() {
             store.state.currentId.privateKey
         )
 
-        // TODO send public key, username, and a private key signed sign-in-req to Beacon server
-        // await signIn(publicK, username.value, )
         todo('sign in to Beacon server')
 
         const user = await createUser(
@@ -139,7 +138,7 @@ async function signIn() {
             store.state.currentId.publicKey,
             wrappedPrivateKey
         )
-        store.commit(mutations.SET_CURRENT_USER, user)
+        store.dispatch(Actions.SIGN_IN, user)
         goToComoc()
     } catch (err) {
         error(`sign in fail, ${err}`)

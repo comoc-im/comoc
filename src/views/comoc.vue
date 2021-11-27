@@ -61,7 +61,6 @@ import { CommonStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
 import { Contact, ContactModel } from '@/db/contact'
-import Socket from '@/network/signaler/websocket'
 import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
 
@@ -79,7 +78,6 @@ if (!currentUser) {
     throw new Error('sign in needed')
 }
 
-WebRTCChannel.init(currentUser.address, new Socket(currentUser.address))
 refreshContacts(currentUser.address)
 
 async function refreshContacts(owner: Address) {

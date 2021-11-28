@@ -1,20 +1,21 @@
 import { Address } from '@comoc-im/message'
 import { USER_STORE_NAME } from '@/db/store-names'
-import { derivePassword, verifyPassword } from '@/db/user/crypto'
+import { derivePassword } from '@/db/user/crypto'
 import Model from '@/db/base'
 import { toAddress } from '@/id'
 
 export interface User {
     username: string
     address: Address
+    passwordHash: string
 }
 
 export class UserModel extends Model implements User {
     public username: string
     public address: Address
+    public passwordHash: string
     private publicKey: CryptoKey
     private privateKey: unknown
-    private passwordHash: string
 
     constructor({
         username,
@@ -53,32 +54,6 @@ export class UserModel extends Model implements User {
         })
         userStore.createIndex('username', 'username', { unique: false })
         userStore.createIndex('address', 'address', { unique: true })
-    }
-
-    static async find(
-        username: string,
-        password: string
-    ): Promise<User | null> {
-        const users = await super.getAllByIndex<UserModel>(
-            USER_STORE_NAME,
-            'username',
-            username
-        )
-        if (users.length === 0) {
-            return null
-        }
-
-        for (const userInDB of users) {
-            const isMatch = await verifyPassword(
-                password,
-                userInDB.passwordHash
-            )
-            if (isMatch) {
-                return userInDB
-            }
-        }
-
-        return null
     }
 
     static async findAll(): Promise<User[]> {

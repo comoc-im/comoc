@@ -5,14 +5,19 @@
                 already signed in, jumping now...
             </p>
             <div v-else-if="localUsers.length !== 0">
+                <p>Sign in with previous ID</p>
                 <a
                     class="local-user"
                     v-for="user in localUsers"
                     :key="user.address"
+                    @click="signInWithPreviousId(user)"
                     :title="'Sign in with ' + user.username"
                     >{{ user.username || user.address }}</a
                 >
                 <br />
+                <br />
+                <hr />
+                Or create new ID
                 <br />
                 <button type="button" @click="localUsers = []">sign up</button>
             </div>
@@ -61,7 +66,7 @@
 import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { error, todo, warn } from '@/utils/logger'
+import { debug, error, todo, warn } from '@/utils/logger'
 import { createId, setCurrentId, stringify, wrapPrivateKey } from '@/id'
 import { mutations } from '@/store/mutations'
 import { CommonStore } from '@/store'
@@ -70,6 +75,7 @@ import { createUser, User, UserModel } from '@/db/user'
 import { notice } from '@/utils/notification'
 import { download } from '@/utils/file'
 import { Actions } from '@/store/actions'
+import { verifyPassword } from '@/db/user/crypto'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -88,6 +94,24 @@ function goToComoc() {
     router.replace({ name: 'comoc' })
 }
 
+async function signInWithPreviousId(user: User) {
+    debug('sign in with previous id', user)
+    const passwordInput = window.prompt(`Enter user's local password`)
+    const password = passwordInput?.trim()
+    if (!password) {
+        notice('warn', 'password necessary')
+        return
+    }
+    const passwordCorrect = await verifyPassword(password, user.passwordHash)
+    if (!passwordCorrect) {
+        notice('error', 'password wrong')
+        return
+    }
+
+    store.dispatch(Actions.SIGN_IN, user)
+    goToComoc()
+}
+
 async function create() {
     if (username.value === '') {
         warn('username necessary')
@@ -104,12 +128,6 @@ async function create() {
         error(`create fail, ${err}`)
         notice('error', `create fail, ${err}`)
     }
-
-    // const passwordHash = await derivePasswordKey(this.password)
-    // const newUser = new User(this.username, passwordHash, keyPair)
-    // await newUser.save()
-    // ElMessage.success('user created')
-    // info(newUser)
 }
 
 async function signIn() {

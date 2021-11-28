@@ -1,5 +1,6 @@
 import { MESSAGE_STORE_NAME } from '@/db/store-names'
 import Model from '@/db/base'
+import { Address } from '@comoc-im/message'
 
 export enum MessageType {
     Text,
@@ -7,17 +8,25 @@ export enum MessageType {
 
 export default class Message extends Model {
     id: string
+    owner: Address
     from: string
     to: string
     type: MessageType
     payload: string
     timestamp: number
 
-    constructor(type: MessageType, payload: string, from: string, to: string) {
+    constructor(
+        type: MessageType,
+        payload: string,
+        from: string,
+        to: string,
+        owner: Address
+    ) {
         super(MESSAGE_STORE_NAME)
 
         const timestamp = Date.now()
         this.id = timestamp.toString() // todo
+        this.owner = owner
         this.type = type
         this.payload = payload
         this.from = from
@@ -39,6 +48,7 @@ export default class Message extends Model {
         store.createIndex('to', 'to', { unique: false })
         store.createIndex('type', 'type', { unique: false })
         store.createIndex('timestamp', 'timestamp', { unique: false })
+        store.createIndex('owner', 'owner', { unique: false })
     }
 
     public static async getHistoryWith(

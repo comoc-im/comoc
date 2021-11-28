@@ -295,7 +295,8 @@ export class WebRTCChannel implements Channel {
                 MessageType.Text,
                 msgObj.payload,
                 msgObj.from,
-                msgObj.to
+                msgObj.to,
+                WebRTCChannel.address
             )
 
             msg.save()

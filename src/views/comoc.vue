@@ -161,7 +161,8 @@ async function send() {
         MessageType.Text,
         inputText.value,
         currentUser.address,
-        currentContact.value.address
+        currentContact.value.address,
+        currentUser.address
     )
 
     msgList.value.push(msg)

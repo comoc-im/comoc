@@ -3,4 +3,8 @@
 .btn {
     cursor: pointer;
     user-select: none;
+
+    &.red {
+        color: orangered;
+    }
 }

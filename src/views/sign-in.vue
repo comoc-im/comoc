@@ -6,20 +6,40 @@
             </p>
             <div v-else-if="localUsers.length !== 0">
                 <p>Sign in with previous ID</p>
-                <a
+                <button
                     class="local-user"
+                    type="button"
+                    :class="{ selected: selectedUser === user }"
                     v-for="user in localUsers"
                     :key="user.address"
-                    @click="signInWithPreviousId(user)"
+                    @click="selectedUser = user"
                     :title="'Sign in with ' + user.username"
-                    >{{ user.username || user.address }}</a
                 >
+                    {{ user.username || user.address }}
+                </button>
                 <br />
                 <br />
+                <template v-if="selectedUser">
+                    <button
+                        class="btn"
+                        type="button"
+                        @click="signInWithPreviousId(selectedUser)"
+                    >
+                        Sign In
+                    </button>
+                    &nbsp;
+                    <button
+                        class="btn red"
+                        type="button"
+                        @click="deleteLocalUser(selectedUser)"
+                    >
+                        Delete
+                    </button>
+                </template>
                 <hr />
-                Or create new ID
-                <br />
-                <button type="button" @click="localUsers = []">sign up</button>
+                or
+                <button type="button" @click="localUsers = []">Create</button>
+                new Comoc ID
             </div>
             <form v-else>
                 <template v-if="!store.state.currentId">
@@ -84,6 +104,7 @@ const router = useRouter()
 const username = ref(usernameCache)
 const password = ref('')
 const localUsers = ref<User[]>([])
+const selectedUser = ref<User | null>(null)
 
 UserModel.findAll().then((users) => {
     localUsers.value = users
@@ -110,6 +131,11 @@ async function signInWithPreviousId(user: User) {
 
     store.dispatch(Actions.SIGN_IN, user)
     goToComoc()
+}
+
+async function deleteLocalUser() {
+    // TODO
+    todo('deleteLocalUser')
 }
 
 async function create() {
@@ -211,9 +237,19 @@ if (store.getters.isSignedIn) {
         box-shadow: 0 0 5px lightgrey;
         cursor: pointer;
 
-        &:hover {
+        &:hover,
+        &:focus-visible,
+        &:focus {
             border: 1px solid grey;
             box-shadow: 0 0 5px 1px lightgrey;
+        }
+
+        &.selected {
+            color: royalblue;
+            font-weight: bold;
+            background-color: white;
+            border: 1px solid royalblue;
+            //box-shadow: 0 0 5px 1px limegreen;
         }
     }
 }

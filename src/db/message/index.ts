@@ -71,6 +71,13 @@ export default class Message extends Model {
         return result
     }
 
+    public static async deleteMany(owner: Address): Promise<number> {
+        return super.deleteMany<Message>(
+            MESSAGE_STORE_NAME,
+            (m) => m.owner == owner
+        )
+    }
+
     async save(): Promise<void> {
         await this.put()
     }

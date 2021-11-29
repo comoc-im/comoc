@@ -96,6 +96,8 @@ import { notice } from '@/utils/notification'
 import { download } from '@/utils/file'
 import { Actions } from '@/store/actions'
 import { verifyPassword } from '@/db/user/crypto'
+import { ContactModel } from '@/db/contact'
+import Message from '@/db/message'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -133,9 +135,20 @@ async function signInWithPreviousId(user: User) {
     goToComoc()
 }
 
-async function deleteLocalUser() {
-    // TODO
-    todo('deleteLocalUser')
+async function deleteLocalUser(user: User) {
+    const sure = window.confirm(
+        'Delete local user will remove all her local data, you sure?'
+    )
+    if (!sure) {
+        return
+    }
+    const index = localUsers.value.findIndex(
+        ({ address }) => user.address === address
+    )
+    localUsers.value.splice(index, 1)
+    await UserModel.delete(user)
+    await ContactModel.deleteMany(user.address)
+    await Message.deleteMany(user.address)
 }
 
 async function create() {

@@ -36,6 +36,13 @@ export class ContactModel extends Model implements Contact {
         )
     }
 
+    public static async deleteMany(owner: Address): Promise<number> {
+        return super.deleteMany<ContactModel>(
+            CONTACT_STORE_NAME,
+            (c) => c.owner == owner
+        )
+    }
+
     constructor(address: Address, owner: Address, username = address) {
         super(CONTACT_STORE_NAME)
 

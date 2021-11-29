@@ -60,6 +60,13 @@ export class UserModel extends Model implements User {
         return super.getAll<User>(USER_STORE_NAME)
     }
 
+    public static async delete(user: User): Promise<void> {
+        await super.deleteMany<UserModel>(
+            USER_STORE_NAME,
+            (u) => u.address == user.address
+        )
+    }
+
     async save(): Promise<void> {
         await this.put()
     }

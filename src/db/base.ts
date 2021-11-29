@@ -117,4 +117,33 @@ export default abstract class Model {
             trans.oncomplete = () => resolve(addReq.result as string)
         })
     }
+
+    /**
+     * Delete record
+     * @return {Promise<String>}
+     */
+    protected static async deleteMany<T>(
+        storeName: string,
+        queryFunc: (item: T) => boolean
+    ): Promise<number> {
+        return new Promise((resolve) => {
+            const trans = this.db.transaction([storeName], 'readwrite')
+            const os = trans.objectStore(storeName)
+            const req = os.openCursor()
+            let count = 0
+            req.onsuccess = () => {
+                const cursor = req.result
+                if (cursor) {
+                    const match = queryFunc(cursor.value)
+                    if (match) {
+                        count++
+                        cursor.delete()
+                    }
+                    cursor.continue()
+                } else {
+                    resolve(count)
+                }
+            }
+        })
+    }
 }

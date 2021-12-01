@@ -32,8 +32,47 @@ export async function createId(): Promise<ComocID> {
 
 export async function stringify(id: ComocID): Promise<string> {
     return JSON.stringify({
-        privateKey: await crypto.subtle.exportKey('jwk', id.privateKey),
-        publicKey: await crypto.subtle.exportKey('jwk', id.publicKey),
+        privateKey: await window.crypto.subtle.exportKey('jwk', id.privateKey),
+        publicKey: await window.crypto.subtle.exportKey('jwk', id.publicKey),
+    })
+}
+
+export function importByFile(file: File): Promise<ComocID> {
+    return new Promise((resolve, reject) => {
+        const fr = new FileReader()
+        fr.onload = async () => {
+            try {
+                console.warn(fr.result)
+                const { privateKey, publicKey } = JSON.parse(
+                    fr.result as string
+                ) as ComocIdCache
+                resolve({
+                    privateKey: await window.crypto.subtle.importKey(
+                        'jwk',
+                        privateKey,
+                        {
+                            name: 'ECDSA',
+                            namedCurve: 'P-384',
+                        },
+                        true,
+                        ['sign']
+                    ),
+                    publicKey: await window.crypto.subtle.importKey(
+                        'jwk',
+                        publicKey,
+                        {
+                            name: 'ECDSA',
+                            namedCurve: 'P-384',
+                        },
+                        true,
+                        ['verify']
+                    ),
+                })
+            } catch (err) {
+                reject(err)
+            }
+        }
+        fr.readAsText(file)
     })
 }
 

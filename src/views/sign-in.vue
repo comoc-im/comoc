@@ -1,6 +1,10 @@
 <template>
     <div class="login">
         <div class="auth-lock">
+            <button type="button" @click="importIdFile">
+                Sign in with ComoC-ID file
+            </button>
+            <hr />
             <p v-if="store.getters.isSignedIn">
                 already signed in, jumping now...
             </p>
@@ -87,7 +91,13 @@ import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { debug, error, todo, warn } from '@/utils/logger'
-import { createId, setCurrentId, stringify, wrapPrivateKey } from '@/id'
+import {
+    createId,
+    importByFile,
+    setCurrentId,
+    stringify,
+    wrapPrivateKey,
+} from '@/id'
 import { mutations } from '@/store/mutations'
 import { CommonStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
@@ -158,6 +168,22 @@ async function deleteLocalUser() {
     await UserModel.delete(user)
     await ContactModel.deleteMany(user.address)
     await Message.deleteMany(user.address)
+}
+
+function importIdFile(): void {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.onchange = async () => {
+        const file = input.files?.[0]
+        if (!file) {
+            return
+        }
+
+        const id = await importByFile(file)
+        store.commit(mutations.SET_CURRENT_ID, id)
+        setCurrentId(id)
+    }
+    input.click()
 }
 
 async function create() {

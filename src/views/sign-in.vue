@@ -23,7 +23,7 @@
                     <button
                         class="btn"
                         type="button"
-                        @click="signInWithPreviousId(selectedUser)"
+                        @click="signInWithPreviousId"
                     >
                         Sign In
                     </button>
@@ -31,7 +31,7 @@
                     <button
                         class="btn red"
                         type="button"
-                        @click="deleteLocalUser(selectedUser)"
+                        @click="deleteLocalUser"
                     >
                         Delete
                     </button>
@@ -98,6 +98,7 @@ import { Actions } from '@/store/actions'
 import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import Message from '@/db/message'
+import { RouteName } from '@/router/routes'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -114,10 +115,14 @@ UserModel.findAll().then((users) => {
 
 function goToComoc() {
     window.sessionStorage.removeItem(SessionStorageKeys.Username)
-    router.replace({ name: 'comoc' })
+    router.replace({ name: RouteName.Comoc })
 }
 
-async function signInWithPreviousId(user: User) {
+async function signInWithPreviousId() {
+    if (!selectedUser.value) {
+        return
+    }
+    const user = selectedUser.value
     debug('sign in with previous id', user)
     const passwordInput = window.prompt(`Enter user's local password`)
     const password = passwordInput?.trim()
@@ -135,7 +140,11 @@ async function signInWithPreviousId(user: User) {
     goToComoc()
 }
 
-async function deleteLocalUser(user: User) {
+async function deleteLocalUser() {
+    if (!selectedUser.value) {
+        return
+    }
+    const user = selectedUser.value
     const sure = window.confirm(
         'Delete local user will remove all her local data, you sure?'
     )

@@ -1,16 +1,21 @@
+import { RouteRecordRaw } from 'vue-router'
+
 const signIn = () => import('../views/sign-in.vue')
 const Comoc = () => import('../views/comoc.vue')
 
-export default [
-    { path: '/sign_in', name: 'signIn', component: signIn },
+export enum RouteName {
+    SignIn = 'signIn',
+    Comoc = 'comoc',
+}
+export const routes: RouteRecordRaw[] = [
+    { path: '/sign_in', name: RouteName.SignIn, component: signIn },
     {
         path: '/comoc',
-        name: 'comoc',
+        name: RouteName.Comoc,
         component: Comoc,
     },
     {
         path: '/:pathMatch(.*)*',
-        name: 'catchAll',
-        redirect: { name: 'signIn' },
+        redirect: { name: RouteName.SignIn },
     },
 ]

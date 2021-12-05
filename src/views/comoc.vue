@@ -3,6 +3,7 @@
         <div class="panel">
             <button type="button" @click="copyAddress">Copy Address</button>
             <button type="button" @click="addContact">Add Contact</button>
+            <button type="button" @click="exportID">Export My ID</button>
         </div>
         <div class="contacts">
             <div
@@ -55,7 +56,7 @@ import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info, warn } from '@/utils/logger'
-import { fromAddress } from '@/id'
+import { fromAddress, stringify } from '@/id'
 import { useStore } from 'vuex'
 import { CommonStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
@@ -63,6 +64,8 @@ import { notice } from '@/utils/notification'
 import { Contact, ContactModel } from '@/db/contact'
 import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
+import { verifyPassword } from '@/db/user/crypto'
+import { download } from '@/utils/file'
 
 const store = useStore<CommonStore>()
 const { currentUser } = store.state
@@ -114,6 +117,31 @@ async function addContact(): Promise<void> {
 
     await contact.save()
     refreshContacts(contact.owner)
+}
+
+async function exportID(): Promise<void> {
+    if (!currentUser || !store.state.currentId) {
+        return
+    }
+    const _password = window.prompt('Enter local password')
+    const password = _password ? _password.trim() : ''
+    if (!password) {
+        return
+    }
+
+    const passwordCorrect = await verifyPassword(
+        password,
+        currentUser.passwordHash
+    )
+    if (!passwordCorrect) {
+        notice('error', 'password wrong')
+        return
+    }
+
+    download(
+        await stringify(store.state.currentId),
+        `${currentUser.username}.id`
+    )
 }
 
 async function selectContact(contact: Contact) {

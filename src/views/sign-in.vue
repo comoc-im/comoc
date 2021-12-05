@@ -1,10 +1,12 @@
 <template>
     <div class="login">
         <div class="auth-lock">
-            <button type="button" @click="importIdFile">
-                Sign in with ComoC-ID file
-            </button>
-            <hr />
+            <template v-if="!store.state.currentId">
+                <button type="button" @click="importIdFile">
+                    Sign in with ComoC-ID file
+                </button>
+                <hr />
+            </template>
             <p v-if="store.getters.isSignedIn">
                 already signed in, jumping now...
             </p>
@@ -170,20 +172,10 @@ async function deleteLocalUser() {
     await Message.deleteMany(user.address)
 }
 
-function importIdFile(): void {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.onchange = async () => {
-        const file = input.files?.[0]
-        if (!file) {
-            return
-        }
-
-        const id = await importByFile(file)
-        store.commit(mutations.SET_CURRENT_ID, id)
-        setCurrentId(id)
-    }
-    input.click()
+async function importIdFile(): Promise<void> {
+    const id = await importByFile()
+    store.commit(mutations.SET_CURRENT_ID, id)
+    setCurrentId(id)
 }
 
 async function create() {

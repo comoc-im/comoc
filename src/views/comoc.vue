@@ -1,9 +1,14 @@
 <template>
     <div class="comoc-web">
         <div class="panel">
-            <button type="button" @click="copyAddress">Copy Address</button>
-            <button type="button" @click="addContact">Add Contact</button>
-            <button type="button" @click="exportID">Export My ID</button>
+            <div class="profile">
+                <button type="button" @click="copyAddress">Copy Address</button>
+                <button type="button" @click="addContact">Add Contact</button>
+                <button type="button" @click="exportID">Export My ID</button>
+            </div>
+            <button type="button" class="preferences-btn" title="Preferences">
+                <fas-icon icon="tools" />
+            </button>
         </div>
         <div class="contacts">
             <div
@@ -208,10 +213,16 @@ async function send() {
     height: 100vh;
 
     .panel {
-        width: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1em;
+        max-width: 80px;
         border-right: 1px solid lightgrey;
 
-        .address {
+        .preferences-btn {
+            padding: 0.5em;
         }
     }
 

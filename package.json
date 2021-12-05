@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "@comoc-im/message": "^0.1.5",
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/vue-fontawesome": "^3.0.0-5",
     "core-js": "^3.18.3",
     "hash-wasm": "^4.9.0",
     "randomcolor": "^0.6.2",

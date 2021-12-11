@@ -4,11 +4,12 @@ import { createApp } from 'vue'
 import { RouterView } from 'vue-router'
 import './styles/index.scss'
 import router from './router'
-import store, { recoverSessionState } from './store'
+import { recoverSessionState } from './store'
 import dbReady from '@/db'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faTools } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { createPinia } from 'pinia'
 
 library.add(faTools)
 
@@ -33,11 +34,11 @@ if (process.env.NODE_ENV !== 'development') {
  * Vue SPA Start
  */
 ;(async () => {
-    await dbReady
-    await recoverSessionState()
-
     app.component('fas-icon', FontAwesomeIcon)
-    app.use(store)
+    app.use(createPinia())
     app.use(router)
     app.mount('#app')
+
+    await dbReady
+    await recoverSessionState()
 })()

@@ -62,8 +62,7 @@ import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info, warn } from '@/utils/logger'
 import { fromAddress, stringify } from '@/id'
-import { useStore } from 'vuex'
-import { CommonStore } from '@/store'
+import { useSessionStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
 import { Contact, ContactModel } from '@/db/contact'
@@ -72,8 +71,8 @@ import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 
-const store = useStore<CommonStore>()
-const { currentUser } = store.state
+const store = useSessionStore()
+const { currentUser } = store
 const contacts = ref<Contact[]>([])
 const activeContactID = ref<Address>('')
 const inputText = ref<string>('')
@@ -125,7 +124,7 @@ async function addContact(): Promise<void> {
 }
 
 async function exportID(): Promise<void> {
-    if (!currentUser || !store.state.currentId) {
+    if (!currentUser || !store.currentId) {
         return
     }
     const _password = window.prompt('Enter local password')
@@ -143,10 +142,7 @@ async function exportID(): Promise<void> {
         return
     }
 
-    download(
-        await stringify(store.state.currentId),
-        `${currentUser.username}.id`
-    )
+    download(await stringify(store.currentId), `${currentUser.username}.id`)
 }
 
 async function selectContact(contact: Contact) {

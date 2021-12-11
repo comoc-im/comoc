@@ -1,6 +1,6 @@
 import { RouteName, routes } from './routes'
 import { createRouter, createWebHashHistory } from 'vue-router'
-import store from '@/store'
+import { useSessionStore } from '@/store'
 import { warn } from '@/utils/logger'
 
 const router = createRouter({
@@ -9,7 +9,8 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    if (to.name !== RouteName.SignIn && !store.getters.isSignedIn) {
+    const sessionStore = useSessionStore()
+    if (to.name !== RouteName.SignIn && !sessionStore.isSignedIn) {
         warn('redirect to sign in')
         next({ name: RouteName.SignIn })
         return

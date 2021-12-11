@@ -1,15 +1,13 @@
 <template>
     <div class="login">
         <div class="auth-lock">
-            <template v-if="!store.state.currentId">
+            <template v-if="!store.currentId">
                 <button type="button" @click="importIdFile">
                     Sign in with ComoC-ID file
                 </button>
                 <hr />
             </template>
-            <p v-if="store.getters.isSignedIn">
-                already signed in, jumping now...
-            </p>
+            <p v-if="store.isSignedIn">already signed in, jumping now...</p>
             <div v-else-if="localUsers.length !== 0">
                 <p>Sign in with previous ID</p>
                 <button
@@ -48,7 +46,7 @@
                 new Comoc ID
             </div>
             <form v-else>
-                <template v-if="!store.state.currentId">
+                <template v-if="!store.currentId">
                     <label>
                         Username
                         <br />
@@ -90,7 +88,6 @@
 </template>
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { debug, error, todo, warn } from '@/utils/logger'
 import {
@@ -100,13 +97,11 @@ import {
     stringify,
     wrapPrivateKey,
 } from '@/id'
-import { mutations } from '@/store/mutations'
-import { CommonStore } from '@/store'
+import { useSessionStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser, User, UserModel } from '@/db/user'
 import { notice } from '@/utils/notification'
 import { download } from '@/utils/file'
-import { Actions } from '@/store/actions'
 import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import Message from '@/db/message'
@@ -114,7 +109,7 @@ import { RouteName } from '@/router/routes'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
-const store = useStore<CommonStore>()
+const store = useSessionStore()
 const router = useRouter()
 const username = ref(usernameCache)
 const password = ref('')
@@ -148,7 +143,7 @@ async function signInWithPreviousId() {
         return
     }
 
-    store.dispatch(Actions.SIGN_IN, user)
+    store.signIn(user)
     goToComoc()
 }
 
@@ -174,7 +169,7 @@ async function deleteLocalUser() {
 
 async function importIdFile(): Promise<void> {
     const id = await importByFile()
-    store.commit(mutations.SET_CURRENT_ID, id)
+    store.currentId = id
     setCurrentId(id)
 }
 
@@ -188,7 +183,7 @@ async function create() {
     try {
         const id = await createId()
         download(await stringify(id), `${username.value}.id`)
-        store.commit(mutations.SET_CURRENT_ID, id)
+        store.currentId = id
         setCurrentId(id)
     } catch (err) {
         error(`create fail, ${err}`)
@@ -197,7 +192,7 @@ async function create() {
 }
 
 async function signIn() {
-    if (!store.state.currentId) {
+    if (!store.currentId) {
         warn('no comoc id')
         notice('warn', 'no comoc id')
         return
@@ -211,7 +206,7 @@ async function signIn() {
     try {
         const wrappedPrivateKey = await wrapPrivateKey(
             password.value,
-            store.state.currentId.privateKey
+            store.currentId.privateKey
         )
 
         todo('sign in to Beacon server')
@@ -219,10 +214,10 @@ async function signIn() {
         const user = await createUser(
             username.value,
             password.value,
-            store.state.currentId.publicKey,
+            store.currentId.publicKey,
             wrappedPrivateKey
         )
-        store.dispatch(Actions.SIGN_IN, user)
+        store.signIn(user)
         goToComoc()
     } catch (err) {
         error(`sign in fail, ${err}`)
@@ -230,7 +225,7 @@ async function signIn() {
     }
 }
 
-if (store.getters.isSignedIn) {
+if (store.isSignedIn) {
     goToComoc()
 } else {
     watch(username, (newName, oldName) => {

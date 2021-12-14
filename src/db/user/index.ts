@@ -2,20 +2,22 @@ import { Address } from '@comoc-im/message'
 import { USER_STORE_NAME } from '@/db/store-names'
 import { derivePassword } from '@/db/user/crypto'
 import Model from '@/db/base'
-import { toAddress } from '@/id'
+import { toAddress, WrappedPrivateKey } from '@/id'
 
 export interface User {
     username: string
     address: Address
     passwordHash: string
+    publicKey: CryptoKey
+    privateKey: WrappedPrivateKey
 }
 
 export class UserModel extends Model implements User {
     public username: string
     public address: Address
     public passwordHash: string
-    private publicKey: CryptoKey
-    private privateKey: unknown
+    public publicKey: CryptoKey
+    public privateKey: WrappedPrivateKey
 
     constructor({
         username,
@@ -28,7 +30,7 @@ export class UserModel extends Model implements User {
         publicKey: CryptoKey
         address: string
         passwordHash: string
-        privateKey: unknown
+        privateKey: WrappedPrivateKey
     }) {
         super(USER_STORE_NAME)
 
@@ -76,7 +78,7 @@ export async function createUser(
     username: string,
     password: string,
     publicKey: CryptoKey,
-    privateKey: unknown
+    privateKey: WrappedPrivateKey
 ): Promise<User> {
     const address = await toAddress(publicKey)
     const user = new UserModel({

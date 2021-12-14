@@ -1,4 +1,3 @@
-import { SessionStorageKeys } from '@/constants'
 import { debug, error } from '@/utils/logger'
 import { Address, addressToBytes, bytesToAddress } from '@comoc-im/message'
 
@@ -37,79 +36,13 @@ export async function stringify(id: ComocID): Promise<string> {
     })
 }
 
-export function importByFile(): Promise<ComocID> {
-    const input = document.createElement('input')
-    input.type = 'file'
-    const result = new Promise<ComocID>((resolve, reject) => {
-        input.onchange = async () => {
-            const file = input.files?.[0]
-            if (!file) {
-                return
-            }
-
-            const fr = new FileReader()
-            fr.onload = async () => {
-                try {
-                    console.warn(fr.result)
-                    const { privateKey, publicKey } = JSON.parse(
-                        fr.result as string
-                    ) as ComocIdCache
-                    resolve({
-                        privateKey: await window.crypto.subtle.importKey(
-                            'jwk',
-                            privateKey,
-                            {
-                                name: 'ECDSA',
-                                namedCurve: 'P-384',
-                            },
-                            true,
-                            ['sign']
-                        ),
-                        publicKey: await window.crypto.subtle.importKey(
-                            'jwk',
-                            publicKey,
-                            {
-                                name: 'ECDSA',
-                                namedCurve: 'P-384',
-                            },
-                            true,
-                            ['verify']
-                        ),
-                    })
-                } catch (err) {
-                    reject(err)
-                }
-            }
-            fr.readAsText(file)
-        }
-    })
-    input.click()
-    return result
-}
-
-export async function setCurrentId(id: ComocID): Promise<void> {
-    const idCache: ComocIdCache = {
-        privateKey: await window.crypto.subtle.exportKey('jwk', id.privateKey),
-        publicKey: await window.crypto.subtle.exportKey('jwk', id.publicKey),
-    }
-    window.sessionStorage.setItem(
-        SessionStorageKeys.CurrentId,
-        JSON.stringify(idCache)
-    )
-}
-
-export async function getCurrentId(): Promise<ComocID | null> {
-    const cacheStr = window.sessionStorage.getItem(SessionStorageKeys.CurrentId)
-    if (!cacheStr) {
-        return null
-    }
-
+export async function parse(source: string): Promise<ComocID | null> {
     try {
-        const idCache: ComocIdCache = JSON.parse(cacheStr.trim())
+        const { privateKey, publicKey } = JSON.parse(source) as ComocIdCache
         return {
             privateKey: await window.crypto.subtle.importKey(
                 'jwk',
-                idCache.privateKey,
+                privateKey,
                 {
                     name: 'ECDSA',
                     namedCurve: 'P-384',
@@ -119,7 +52,7 @@ export async function getCurrentId(): Promise<ComocID | null> {
             ),
             publicKey: await window.crypto.subtle.importKey(
                 'jwk',
-                idCache.publicKey,
+                publicKey,
                 {
                     name: 'ECDSA',
                     namedCurve: 'P-384',
@@ -129,9 +62,29 @@ export async function getCurrentId(): Promise<ComocID | null> {
             ),
         }
     } catch (err) {
-        error(`read current id from session storage fail`, err)
         return null
     }
+}
+
+export function importByFile(): Promise<ComocID | null> {
+    const input = document.createElement('input')
+    input.type = 'file'
+    const result = new Promise<ComocID | null>((resolve) => {
+        input.onchange = async () => {
+            const file = input.files?.[0]
+            if (!file) {
+                return
+            }
+
+            const fr = new FileReader()
+            fr.onload = async () => {
+                resolve(parse(fr.result as string))
+            }
+            fr.readAsText(file)
+        }
+    })
+    input.click()
+    return result
 }
 
 /**
@@ -168,7 +121,7 @@ function getKey(keyMaterial: CryptoKey, salt: Uint8Array) {
     )
 }
 
-interface WrappedPrivateKey {
+export interface WrappedPrivateKey {
     salt: Uint8Array
     iv: Uint8Array
     wrapped: ArrayBuffer
@@ -202,16 +155,14 @@ export async function wrapPrivateKey(
 
 export async function unwrapPrivateKey(
     password: string,
-    salt: Uint8Array,
-    iv: Uint8Array,
-    wrappedKey: ArrayBuffer
+    { salt, iv, wrapped }: WrappedPrivateKey
 ): Promise<CryptoKey> {
     const keyMaterial = await getKeyMaterial(password)
     const unwrappingKey = await getKey(keyMaterial, salt)
     // 3. unwrap the key
     return window.crypto.subtle.unwrapKey(
         'jwk', // import format
-        wrappedKey, // ArrayBuffer representing key to unwrap
+        wrapped, // ArrayBuffer representing key to unwrap
         unwrappingKey, // CryptoKey representing key encryption key
         { name: 'AES-GCM', iv }, // algorithm identifier for key encryption key
         { name: 'ECDSA', namedCurve: 'P-384' }, // algorithm identifier for key to unwrap

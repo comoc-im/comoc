@@ -61,7 +61,7 @@ import { computed, ref } from 'vue'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info, warn } from '@/utils/logger'
-import { fromAddress, stringify } from '@/id'
+import { fromAddress, stringify, unwrapPrivateKey } from '@/id'
 import { useSessionStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
@@ -124,7 +124,7 @@ async function addContact(): Promise<void> {
 }
 
 async function exportID(): Promise<void> {
-    if (!currentUser || !store.currentId) {
+    if (!currentUser) {
         return
     }
     const _password = window.prompt('Enter local password')
@@ -142,7 +142,15 @@ async function exportID(): Promise<void> {
         return
     }
 
-    download(await stringify(store.currentId), `${currentUser.username}.id`)
+    const privateKey = await unwrapPrivateKey(password, currentUser.privateKey)
+
+    download(
+        await stringify({
+            publicKey: currentUser.publicKey,
+            privateKey,
+        }),
+        `${currentUser.username}.id`
+    )
 }
 
 async function selectContact(contact: Contact) {

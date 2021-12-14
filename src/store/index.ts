@@ -1,5 +1,3 @@
-import { ComocID, getCurrentId } from '@/id'
-import { debug } from '@/utils/logger'
 import { SessionStorageKeys } from '@/constants'
 import { User } from '@/db/user'
 import Socket from '@/network/signaler/websocket'
@@ -7,13 +5,11 @@ import { WebRTCChannel } from '@/network/channel/webrtc'
 import { defineStore } from 'pinia'
 
 export type CommonStore = {
-    currentId: ComocID | null
     currentUser: User | null
 }
 
 export const useSessionStore = defineStore('session', {
     state: (): CommonStore => ({
-        currentId: null,
         currentUser: null,
     }),
     getters: {
@@ -40,10 +36,5 @@ export async function recoverSessionState(): Promise<void> {
     if (cache) {
         const user: User = JSON.parse(cache)
         sessionStore.signIn(user)
-    }
-    const id = await getCurrentId()
-    if (id) {
-        debug(`recover current id from session`)
-        sessionStore.currentId = id
     }
 }

@@ -1,7 +1,7 @@
 <template>
     <div class="login">
         <div class="auth-lock">
-            <template v-if="!store.currentId">
+            <template v-if="!currentId">
                 <button type="button" @click="importIdFile">
                     Import ComoC-ID
                 </button>
@@ -11,13 +11,13 @@
             <div v-else-if="localUsers.length !== 0">
                 <p>Sign in with previous ID</p>
                 <button
-                    class="local-user"
-                    type="button"
-                    :class="{ selected: selectedUser === user }"
                     v-for="user in localUsers"
                     :key="user.address"
-                    @click="selectedUser = user"
+                    :class="{ selected: selectedUser === user }"
                     :title="'Sign in with ' + (user.username || user.address)"
+                    class="local-user"
+                    type="button"
+                    @click="selectedUser = user"
                 >
                     {{ user.username || user.address }}
                 </button>
@@ -46,7 +46,7 @@
                 new Comoc ID
             </div>
             <form v-else>
-                <template v-if="!store.currentId">
+                <template v-if="!currentId">
                     <label>
                         Username
                         <br />
@@ -91,9 +91,10 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { debug, error, todo, warn } from '@/utils/logger'
 import {
+    ComocID,
     createId,
     importByFile,
-    setCurrentId,
+    parse,
     stringify,
     wrapPrivateKey,
 } from '@/id'
@@ -116,12 +117,21 @@ const password = ref('')
 const localUsers = ref<User[]>([])
 const selectedUser = ref<User | null>(null)
 
+let currentId: ComocID | null = null
+const cacheStr = window.sessionStorage.getItem(SessionStorageKeys.CurrentId)
+if (cacheStr) {
+    parse(cacheStr.trim()).then((id) => {
+        currentId = id
+    })
+}
+
 UserModel.findAll().then((users) => {
     localUsers.value = users
 })
 
 function goToComoc() {
     window.sessionStorage.removeItem(SessionStorageKeys.Username)
+    window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
     router.replace({ name: RouteName.Comoc })
 }
 
@@ -169,8 +179,15 @@ async function deleteLocalUser() {
 
 async function importIdFile(): Promise<void> {
     const id = await importByFile()
-    store.currentId = id
-    setCurrentId(id)
+    if (!id) {
+        notice('warn', 'not valid ID')
+        return
+    }
+    currentId = id
+    window.sessionStorage.setItem(
+        SessionStorageKeys.CurrentId,
+        await stringify(id)
+    )
 }
 
 async function create() {
@@ -183,8 +200,11 @@ async function create() {
     try {
         const id = await createId()
         download(await stringify(id), `${username.value}.id`)
-        store.currentId = id
-        setCurrentId(id)
+        currentId = id
+        window.sessionStorage.setItem(
+            SessionStorageKeys.CurrentId,
+            await stringify(id)
+        )
     } catch (err) {
         error(`create fail, ${err}`)
         notice('error', `create fail, ${err}`)
@@ -192,7 +212,7 @@ async function create() {
 }
 
 async function signIn() {
-    if (!store.currentId) {
+    if (!currentId) {
         warn('no comoc id')
         notice('warn', 'no comoc id')
         return
@@ -206,7 +226,7 @@ async function signIn() {
     try {
         const wrappedPrivateKey = await wrapPrivateKey(
             password.value,
-            store.currentId.privateKey
+            currentId.privateKey
         )
 
         todo('sign in to Beacon server')
@@ -214,7 +234,7 @@ async function signIn() {
         const user = await createUser(
             username.value,
             password.value,
-            store.currentId.publicKey,
+            currentId.publicKey,
             wrappedPrivateKey
         )
         store.signIn(user)

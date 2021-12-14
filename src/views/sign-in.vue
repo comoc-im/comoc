@@ -3,7 +3,7 @@
         <div class="auth-lock">
             <template v-if="!store.currentId">
                 <button type="button" @click="importIdFile">
-                    Sign in with ComoC-ID file
+                    Import ComoC-ID
                 </button>
                 <hr />
             </template>
@@ -17,7 +17,7 @@
                     v-for="user in localUsers"
                     :key="user.address"
                     @click="selectedUser = user"
-                    :title="'Sign in with ' + user.username"
+                    :title="'Sign in with ' + (user.username || user.address)"
                 >
                     {{ user.username || user.address }}
                 </button>
@@ -271,6 +271,10 @@ if (store.isSignedIn) {
         border: 1px solid lightgrey;
         box-shadow: 0 0 5px lightgrey;
         cursor: pointer;
+        max-width: 10em;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
 
         &:hover,
         &:focus-visible,

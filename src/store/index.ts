@@ -3,6 +3,8 @@ import { User } from '@/db/user'
 import Socket from '@/network/signaler/websocket'
 import { WebRTCChannel } from '@/network/channel/webrtc'
 import { defineStore } from 'pinia'
+import { RouteName } from '@/router/routes'
+import { router } from '@/router'
 
 export type CommonStore = {
     currentUser: User | null
@@ -26,6 +28,15 @@ export const useSessionStore = defineStore('session', {
             )
             const signaler = new Socket(user.address)
             WebRTCChannel.init(user.address, signaler)
+            router.replace({ name: RouteName.Comoc })
+        },
+        signOut(): void {
+            this.currentUser = null
+            window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
+            // TODO
+            //  signaler dispose
+            //  WebRTCChannel dispose
+            router.replace({ name: RouteName.SignIn })
         },
     },
 })

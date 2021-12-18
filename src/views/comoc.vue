@@ -5,6 +5,7 @@
                 <button type="button" @click="copyAddress">Copy Address</button>
                 <button type="button" @click="addContact">Add Contact</button>
                 <button type="button" @click="exportID">Export My ID</button>
+                <button type="button" @click="store.signOut">Sign out</button>
             </div>
             <button type="button" class="preferences-btn" title="Preferences">
                 <fas-icon icon="tools" />

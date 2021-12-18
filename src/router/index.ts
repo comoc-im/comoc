@@ -16,8 +16,14 @@ router.beforeEach((to, from, next) => {
         return
     }
 
+    if (to.name === RouteName.SignIn && sessionStore.isSignedIn) {
+        warn('redirect to comoc')
+        next({ name: RouteName.Comoc })
+        return
+    }
+
     next()
 })
 // router.afterEach((to, from) => {});
 
-export default router
+export { router }

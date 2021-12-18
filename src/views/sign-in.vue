@@ -88,7 +88,6 @@
 </template>
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { debug, error, todo, warn } from '@/utils/logger'
 import {
     ComocID,
@@ -106,12 +105,10 @@ import { download } from '@/utils/file'
 import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import Message from '@/db/message'
-import { RouteName } from '@/router/routes'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
 const store = useSessionStore()
-const router = useRouter()
 const username = ref(usernameCache)
 const password = ref('')
 const localUsers = ref<User[]>([])
@@ -128,12 +125,6 @@ if (cacheStr) {
 UserModel.findAll().then((users) => {
     localUsers.value = users
 })
-
-function goToComoc() {
-    window.sessionStorage.removeItem(SessionStorageKeys.Username)
-    window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
-    router.replace({ name: RouteName.Comoc })
-}
 
 async function signInWithPreviousId() {
     if (!selectedUser.value) {
@@ -153,8 +144,9 @@ async function signInWithPreviousId() {
         return
     }
 
+    window.sessionStorage.removeItem(SessionStorageKeys.Username)
+    window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
     store.signIn(user)
-    goToComoc()
 }
 
 async function deleteLocalUser() {
@@ -237,23 +229,20 @@ async function signIn() {
             currentId.value.publicKey,
             wrappedPrivateKey
         )
+        window.sessionStorage.removeItem(SessionStorageKeys.Username)
+        window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
         store.signIn(user)
-        goToComoc()
     } catch (err) {
         error(`sign in fail, ${err}`)
         notice('error', `sign in fail, ${err}`)
     }
 }
 
-if (store.isSignedIn) {
-    goToComoc()
-} else {
-    watch(username, (newName, oldName) => {
-        if (newName !== oldName) {
-            window.sessionStorage.setItem(SessionStorageKeys.Username, newName)
-        }
-    })
-}
+watch(username, (newName, oldName) => {
+    if (newName !== oldName) {
+        window.sessionStorage.setItem(SessionStorageKeys.Username, newName)
+    }
+})
 </script>
 <style lang="scss">
 .login {

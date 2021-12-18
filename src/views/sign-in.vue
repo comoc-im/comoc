@@ -116,12 +116,12 @@ const username = ref(usernameCache)
 const password = ref('')
 const localUsers = ref<User[]>([])
 const selectedUser = ref<User | null>(null)
+const currentId = ref<ComocID | null>(null)
 
-let currentId: ComocID | null = null
 const cacheStr = window.sessionStorage.getItem(SessionStorageKeys.CurrentId)
 if (cacheStr) {
     parse(cacheStr.trim()).then((id) => {
-        currentId = id
+        currentId.value = id
     })
 }
 
@@ -183,7 +183,7 @@ async function importIdFile(): Promise<void> {
         notice('warn', 'not valid ID')
         return
     }
-    currentId = id
+    currentId.value = id
     window.sessionStorage.setItem(
         SessionStorageKeys.CurrentId,
         await stringify(id)
@@ -200,7 +200,7 @@ async function create() {
     try {
         const id = await createId()
         download(await stringify(id), `${username.value}.id`)
-        currentId = id
+        currentId.value = id
         window.sessionStorage.setItem(
             SessionStorageKeys.CurrentId,
             await stringify(id)
@@ -212,7 +212,7 @@ async function create() {
 }
 
 async function signIn() {
-    if (!currentId) {
+    if (!currentId.value) {
         warn('no comoc id')
         notice('warn', 'no comoc id')
         return
@@ -226,7 +226,7 @@ async function signIn() {
     try {
         const wrappedPrivateKey = await wrapPrivateKey(
             password.value,
-            currentId.privateKey
+            currentId.value.privateKey
         )
 
         todo('sign in to Beacon server')
@@ -234,7 +234,7 @@ async function signIn() {
         const user = await createUser(
             username.value,
             password.value,
-            currentId.publicKey,
+            currentId.value.publicKey,
             wrappedPrivateKey
         )
         store.signIn(user)
@@ -254,26 +254,6 @@ if (store.isSignedIn) {
         }
     })
 }
-
-// async submit() {
-//     if (this.username === '' || this.password === '') {
-//         warn('username and password necessary')
-//         ElMessage.warning('username and password necessary')
-//         return
-//     }
-//
-//     const user = await User.find(this.username, this.password)
-//     if (!user) {
-//         warn('user not found')
-//         ElMessage.warning('user not found')
-//         return
-//     }
-//
-//     info('user found', user, this)
-//     store.commit(mutations.SET_CURRENT_USER, user)
-//
-//     this.$router.replace({ name: 'comoc' })
-// },
 </script>
 <style lang="scss">
 .login {

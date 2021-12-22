@@ -1,6 +1,7 @@
 import { MESSAGE_STORE_NAME } from '@/db/store-names'
 import Model from '@/db/base'
 import { Address } from '@comoc-im/message'
+import { v4 } from 'uuid'
 
 export enum MessageType {
     Text,
@@ -25,7 +26,7 @@ export default class Message extends Model {
         super(MESSAGE_STORE_NAME)
 
         const timestamp = Date.now()
-        this.id = timestamp.toString() // todo
+        this.id = v4()
         this.owner = owner
         this.type = type
         this.payload = payload

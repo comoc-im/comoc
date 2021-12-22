@@ -1,5 +1,5 @@
 import { signalerServerWebSocketUrl } from '@/config'
-import { Address, PING, PONG, Signal, SignIn } from '@comoc-im/message'
+import { Address, Signal, SignIn } from '@comoc-im/message'
 import { Signaler } from '@/network/signaler/index'
 import { debug, error, warn } from '@/utils/logger'
 
@@ -10,10 +10,6 @@ function createWebSocket(address: Address) {
 
         webSocket.addEventListener('open', function () {
             debug('websocket open')
-            setInterval(() => {
-                debug('ping')
-                this.send(new Uint8Array([PING]))
-            }, 5000)
             webSocket.send(new SignIn(address).encode())
             resolve(webSocket)
         })
@@ -42,14 +38,6 @@ export default class Socket implements Signaler {
     async onMessage(func: (msg: Signal) => unknown): Promise<() => void> {
         const webSocket = await this.webSocketReady
         const listener = (msg: MessageEvent<ArrayBuffer>) => {
-            if (
-                msg.data.byteLength === 1 &&
-                new Uint8Array(msg.data)[0] === PONG
-            ) {
-                debug(`pong`)
-                return
-            }
-
             try {
                 const signal = Signal.decode(new Uint8Array(msg.data))
                 func(signal)

@@ -1,36 +1,52 @@
 import { MESSAGE_STORE_NAME } from '@/db/store-names'
 import Model from '@/db/base'
-import { Address, Signal } from '@comoc-im/message'
+import { Address } from '@comoc-im/message'
 import { v4 } from 'uuid'
 
 export enum MessageType {
     Text,
 }
 
-export default class Message extends Model {
+export interface Message {
+    id: string
+    type: MessageType
+    payload: string
+    timestamp: number
+    author: Address
+}
+
+export function newMessageId(): string {
+    return v4()
+}
+
+export class MessageModel extends Model implements Message {
     id: string
     owner: Address
-    from: string
-    to: string
+    author: Address
+    from: Address
+    to: Address
     type: MessageType
     payload: string
     timestamp: number
 
-    constructor(
-        type: MessageType,
-        payload: string,
-        from: string,
-        to: string,
-        owner: Address,
-        id = v4(),
-        timestamp = Date.now()
-    ) {
+    constructor({
+        from,
+        to,
+        owner,
+        message: { id, type, payload, timestamp, author },
+    }: {
+        from: Address
+        to: Address
+        owner: Address
+        message: Message
+    }) {
         super(MESSAGE_STORE_NAME)
 
         this.owner = owner
         this.type = type
         this.payload = payload
         this.from = from
+        this.author = author
         this.to = to
         this.id = id
         this.timestamp = timestamp
@@ -51,31 +67,7 @@ export default class Message extends Model {
         store.createIndex('type', 'type', { unique: false })
         store.createIndex('timestamp', 'timestamp', { unique: false })
         store.createIndex('owner', 'owner', { unique: false })
-    }
-
-    public static async fromSignal(
-        s: Signal,
-        owner: Address
-    ): Promise<Message> {
-        const blob = new Blob([s.payload], {
-            type: 'application/json; charset=utf-8',
-        })
-        const str = await blob.text()
-        const msg = JSON.parse(str) as {
-            id: string
-            type: MessageType
-            payload: string
-            timestamp: number
-        }
-        return new Message(
-            msg.type,
-            msg.payload,
-            s.from,
-            s.to,
-            owner,
-            msg.id,
-            msg.timestamp
-        )
+        store.createIndex('author', 'author', { unique: false })
     }
 
     public static async getHistoryWith(
@@ -83,7 +75,7 @@ export default class Message extends Model {
         targetUserId: string
     ): Promise<Message[]> {
         const result: Message[] = []
-        const messages = Model.collectByIndex<Message>(
+        const messages = Model.collectByIndex<MessageModel>(
             MESSAGE_STORE_NAME,
             'timestamp'
         )
@@ -99,7 +91,7 @@ export default class Message extends Model {
     }
 
     public static async deleteMany(owner: Address): Promise<number> {
-        return super.deleteMany<Message>(
+        return super.deleteMany<MessageModel>(
             MESSAGE_STORE_NAME,
             (m) => m.owner == owner
         )
@@ -107,19 +99,5 @@ export default class Message extends Model {
 
     async save(): Promise<void> {
         await this.put()
-    }
-
-    public async toSignal(): Promise<Signal> {
-        const str = JSON.stringify({
-            id: this.id,
-            type: this.type,
-            payload: this.payload,
-            timestamp: this.timestamp,
-        })
-        const blob = new Blob([str], {
-            type: 'application/json; charset=utf-8',
-        })
-        const buffer = await blob.arrayBuffer()
-        return new Signal(this.from, this.to, new Uint8Array(buffer))
     }
 }

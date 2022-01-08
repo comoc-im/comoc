@@ -104,7 +104,7 @@ import { notice } from '@/utils/notification'
 import { download } from '@/utils/file'
 import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
-import Message from '@/db/message'
+import { MessageModel } from '@/db/message'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -166,7 +166,7 @@ async function deleteLocalUser() {
     localUsers.value.splice(index, 1)
     await UserModel.delete(user)
     await ContactModel.deleteMany(user.address)
-    await Message.deleteMany(user.address)
+    await MessageModel.deleteMany(user.address)
 }
 
 async function importIdFile(): Promise<void> {

@@ -5,6 +5,7 @@ import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler, getSignaler } from '@/network/signaler'
 import { info } from '@/utils/logger'
+import { MessageModel } from '@/db/message'
 
 type SessionStore = {
     currentUser: User | null
@@ -20,28 +21,33 @@ export const useSessionStore = defineStore('session', {
         },
     },
     actions: {
-        signIn(user: User) {
+        async signIn(user: User): Promise<void> {
             this.currentUser = user
             window.sessionStorage.setItem(
                 SessionStorageKeys.CurrentUser,
                 JSON.stringify(user)
             )
-            router.replace({ name: RouteName.Comoc })
+            await router.replace({ name: RouteName.Comoc })
             // listen for new messages
             const signaler = getSignaler(user.address)
-            signaler.addEventListener('message', (message) => {
+            signaler.addEventListener('message', async (message) => {
                 info('receive message', message)
-                message.save()
+                await new MessageModel({
+                    from: message._from,
+                    to: message._to,
+                    owner: user.address,
+                    message,
+                }).save()
             })
         },
-        signOut(): void {
+        async signOut(): Promise<void> {
             // signaler dispose
             if (this.currentUser?.address) {
                 closeSignaler(this.currentUser.address)
             }
             window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
             this.currentUser = null
-            router.replace({ name: RouteName.SignIn })
+            await router.replace({ name: RouteName.SignIn })
         },
     },
 })

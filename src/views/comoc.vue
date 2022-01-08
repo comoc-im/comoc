@@ -31,13 +31,15 @@
                     :key="msg.id"
                     :style="{
                         color:
-                            msg.from === activeContactID ? contactColor() : '',
+                            msg.author === activeContactID
+                                ? contactColor()
+                                : '',
                     }"
                     :class="[
                         'msg',
                         {
-                            target: msg.from === activeContactID,
-                            self: msg.to === activeContactID,
+                            target: msg.author === activeContactID,
+                            self: msg.author === currentUser.address,
                         },
                     ]"
                 >
@@ -62,7 +64,7 @@
 </template>
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
-import Message, { MessageType } from '@/db/message'
+import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
 import { fromAddress, stringify, unwrapPrivateKey } from '@/id'
 import { useSessionStore } from '@/store'
@@ -73,7 +75,7 @@ import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
-import { getSignaler } from '@/network/signaler'
+import { getSignaler, SignalMessage } from '@/network/signaler'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -89,8 +91,8 @@ if (!currentUser) {
     throw new Error('sign in needed')
 }
 const signaler = getSignaler(currentUser.address)
-const messageHandler = (message: Message) => {
-    if (activeContactID.value === message.from) {
+const messageHandler = (message: SignalMessage<'message'>) => {
+    if (activeContactID.value === message._from) {
         msgList.value.push(message)
     }
 }
@@ -134,7 +136,7 @@ async function addContact(): Promise<void> {
     const contact = new ContactModel(address as Address, currentUser.address)
 
     await contact.save()
-    refreshContacts(currentUser.address)
+    await refreshContacts(currentUser.address)
 }
 
 async function exportID(): Promise<void> {
@@ -175,7 +177,7 @@ async function selectContact(contact: Contact) {
         return
     }
 
-    Message.getHistoryWith(currentUser.address, contact.address).then(
+    MessageModel.getHistoryWith(currentUser.address, contact.address).then(
         (messages) => {
             msgList.value = messages
         }
@@ -192,20 +194,24 @@ async function send() {
         warn('send without currentContract')
         return
     }
+    const message: Message = {
+        id: newMessageId(),
+        payload: inputText.value,
+        timestamp: Date.now(),
+        type: MessageType.Text,
+        author: currentUser.address,
+    }
+    const msg = new MessageModel({
+        from: currentUser.address,
+        to: currentContact.value.address,
+        owner: currentUser.address,
+        message,
+    })
 
-    const msg = new Message(
-        MessageType.Text,
-        inputText.value,
-        currentUser.address,
-        currentContact.value.address,
-        currentUser.address
-    )
-
-    msgList.value.push(msg)
-    msg.save()
-    signaler.send(await msg.toSignal())
-
+    msgList.value.push(message)
     inputText.value = ''
+    await signaler.send(currentContact.value.address, 'message', message)
+    await msg.save()
 }
 </script>
 <style lang="scss" scoped>

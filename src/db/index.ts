@@ -1,9 +1,9 @@
 import { dbName, dbVersion } from '@/config'
 import { UserModel } from '@/db/user'
-import Message from '@/db/message'
 import Model from '@/db/base'
 import { debug, error } from '@/utils/logger'
 import { ContactModel } from '@/db/contact'
+import { MessageModel } from '@/db/message'
 
 /**
  * Open and init indexedDB globally
@@ -27,7 +27,7 @@ const dbReady: Promise<IDBDatabase> = new Promise(function (resolve, reject) {
         debug('upgradeneeded')
         const db = request.result
         UserModel.init(db)
-        Message.init(db)
+        MessageModel.init(db)
         ContactModel.init(db)
     })
 })

@@ -1,10 +1,14 @@
 import { Address, Signal } from '@comoc-im/message'
 import { error } from '@/utils/logger'
-import { EventHub } from '@/utils/eventHub'
+import { EventHub } from '@/network/signaler/eventHub'
 import Message from '@/db/message'
 import { createWebSocket } from '@/network/signaler/websocket'
 
-class Signaler extends EventHub<{ message: Message }> {
+type EventMap = {
+    message: Message
+}
+
+class Signaler extends EventHub<EventMap> {
     private readonly webSocketReady: Promise<WebSocket>
     public readonly address: Address
 

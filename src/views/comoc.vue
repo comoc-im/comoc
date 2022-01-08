@@ -88,7 +88,10 @@ if (!currentUser) {
 const signaler = new Socket(currentUser.address)
 signaler.addEventListener('message', (message) => {
     info('receive message', message)
-    msgList.value.push(message)
+    message.save()
+    if (currentContact.value?.address === message.from) {
+        msgList.value.push(message)
+    }
 })
 
 refreshContacts(currentUser.address)

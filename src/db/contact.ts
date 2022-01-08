@@ -5,7 +5,6 @@ import { Address } from '@comoc-im/message'
 export interface Contact {
     username: string
     address: string
-    owner: Address
 }
 
 export class ContactModel extends Model implements Contact {
@@ -30,7 +29,7 @@ export class ContactModel extends Model implements Contact {
     }
 
     static async findAll(owner: Address): Promise<Contact[]> {
-        return super.getAllBy<Contact>(
+        return super.getAllBy<ContactModel>(
             CONTACT_STORE_NAME,
             (c) => c.owner === owner
         )

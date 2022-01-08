@@ -134,7 +134,7 @@ async function addContact(): Promise<void> {
     const contact = new ContactModel(address as Address, currentUser.address)
 
     await contact.save()
-    refreshContacts(contact.owner)
+    refreshContacts(currentUser.address)
 }
 
 async function exportID(): Promise<void> {

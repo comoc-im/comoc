@@ -49,4 +49,8 @@ export class EventHub<T extends Record<string, unknown>> {
             this.eventMap.delete(type)
         }
     }
+
+    public clearEventListeners(): void {
+        this.eventMap.clear()
+    }
 }

@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { SessionStorageKeys } from '@/constants'
 import { router } from '@/router'
 import { RouteName } from '@/router/routes'
+import { closeSignaler } from '@/network/signaler'
 
 type SessionStore = {
     currentUser: User | null
@@ -27,11 +28,12 @@ export const useSessionStore = defineStore('session', {
             router.replace({ name: RouteName.Comoc })
         },
         signOut(): void {
-            this.currentUser = null
+            // signaler dispose
+            if (this.currentUser?.address) {
+                closeSignaler(this.currentUser.address)
+            }
             window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
-            // TODO
-            //  signaler dispose
-            //  WebRTCChannel dispose
+            this.currentUser = null
             router.replace({ name: RouteName.SignIn })
         },
     },

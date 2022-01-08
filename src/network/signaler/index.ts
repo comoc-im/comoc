@@ -30,11 +30,16 @@ class Signaler extends EventHub<{ message: Message }> {
         webSocket.addEventListener('message', listener)
     }
 
-    async send(data: Signal): Promise<void> {
+    public async send(data: Signal): Promise<void> {
         const webSocket = await this.webSocketReady
         // debug('websocket sending', data)
 
         webSocket.send(data.encode())
+    }
+
+    public destroy(): void {
+        this.clearEventListeners()
+        // TODO close websocket
     }
 }
 
@@ -45,4 +50,10 @@ export function getSignaler(address: Address): Signaler {
         signaler = new Signaler(address)
     }
     return signaler
+}
+
+export function closeSignaler(address: Address): void {
+    if (address === signaler?.address) {
+        signaler.destroy()
+    }
 }

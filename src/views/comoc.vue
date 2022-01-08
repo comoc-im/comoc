@@ -61,7 +61,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info, warn } from '@/utils/logger'
 import { fromAddress, stringify, unwrapPrivateKey } from '@/id'
@@ -73,7 +73,7 @@ import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
-import Socket from '@/network/signaler/websocket'
+import { getSignaler } from '@/network/signaler'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -88,13 +88,17 @@ const currentContact = computed(() =>
 if (!currentUser) {
     throw new Error('sign in needed')
 }
-const signaler = new Socket(currentUser.address)
-signaler.addEventListener('message', (message) => {
+const signaler = getSignaler(currentUser.address)
+const messageHandler = (message: Message) => {
     info('receive message', message)
     message.save()
-    if (currentContact.value?.address === message.from) {
+    if (activeContactID.value === message.from) {
         msgList.value.push(message)
     }
+}
+signaler.addEventListener('message', messageHandler)
+onBeforeUnmount(() => {
+    signaler.removeEventListener('message', messageHandler)
 })
 
 refreshContacts(currentUser.address)

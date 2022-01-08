@@ -29,7 +29,10 @@
                 <div
                     v-for="msg in msgList"
                     :key="msg.id"
-                    :style="{ color: contactColor() }"
+                    :style="{
+                        color:
+                            msg.from === activeContactID ? contactColor() : '',
+                    }"
                     :class="[
                         'msg',
                         {

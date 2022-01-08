@@ -59,7 +59,6 @@
 </template>
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
-import { WebRTCChannel } from '@/network/channel/webrtc'
 import Message, { MessageType } from '@/db/message'
 import { debug, error, info, warn } from '@/utils/logger'
 import { fromAddress, stringify, unwrapPrivateKey } from '@/id'
@@ -71,6 +70,7 @@ import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
+import Socket from '@/network/signaler/websocket'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -85,6 +85,11 @@ const currentContact = computed(() =>
 if (!currentUser) {
     throw new Error('sign in needed')
 }
+const signaler = new Socket(currentUser.address)
+signaler.addEventListener('message', (message) => {
+    info('receive message', message)
+    msgList.value.push(message)
+})
 
 refreshContacts(currentUser.address)
 
@@ -167,26 +172,11 @@ async function selectContact(contact: Contact) {
             msgList.value = messages
         }
     )
-
-    let channel = new WebRTCChannel(contact.address)
-    debug('get channel', channel)
-
-    channel.onMessage((msg) => {
-        info('receive message', msg)
-        msgList.value.push(msg)
-    })
 }
 
 async function send() {
-    let channel = new WebRTCChannel(activeContactID.value)
-
     if (!currentUser) {
         error(`not signed in`)
-        return
-    }
-
-    if (!channel) {
-        warn('send without channel')
         return
     }
 
@@ -205,7 +195,7 @@ async function send() {
 
     msgList.value.push(msg)
     msg.save()
-    channel.send(msg)
+    signaler.send(await msg.toSignal())
 
     inputText.value = ''
 }

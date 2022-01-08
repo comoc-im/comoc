@@ -2,6 +2,8 @@ import { signalerServerWebSocketUrl } from '@/config'
 import { Address, Signal, SignIn } from '@comoc-im/message'
 import { Signaler } from '@/network/signaler/index'
 import { debug, error, warn } from '@/utils/logger'
+import { EventHub } from '@/utils/eventHub'
+import Message from '@/db/message'
 
 function createWebSocket(address: Address) {
     return new Promise<WebSocket>((resolve) => {
@@ -28,28 +30,31 @@ function createWebSocket(address: Address) {
     })
 }
 
-export default class Socket implements Signaler {
+export default class Socket
+    extends EventHub<{ message: Message }>
+    implements Signaler
+{
     private readonly webSocketReady: Promise<WebSocket>
 
     constructor(address: Address) {
+        super()
         this.webSocketReady = createWebSocket(address)
+        this.listenMessage()
     }
 
-    async onMessage(func: (msg: Signal) => unknown): Promise<() => void> {
+    private async listenMessage(): Promise<void> {
         const webSocket = await this.webSocketReady
-        const listener = (msg: MessageEvent<ArrayBuffer>) => {
+        const listener = async (msg: MessageEvent<ArrayBuffer>) => {
             try {
                 const signal = Signal.decode(new Uint8Array(msg.data))
-                func(signal)
+                const m = await Message.fromSignal(signal, signal.to)
+                this.dispatchEvent('message', m)
             } catch (err) {
                 error(`unrecognized websocket message`, msg.data)
             }
         }
 
         webSocket.addEventListener('message', listener)
-        return () => {
-            webSocket.removeEventListener('message', listener)
-        }
     }
 
     async send(data: Signal): Promise<void> {

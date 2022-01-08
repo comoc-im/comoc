@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 import { SessionStorageKeys } from '@/constants'
 import { router } from '@/router'
 import { RouteName } from '@/router/routes'
-import { closeSignaler } from '@/network/signaler'
+import { closeSignaler, getSignaler } from '@/network/signaler'
+import { info } from '@/utils/logger'
 
 type SessionStore = {
     currentUser: User | null
@@ -26,6 +27,12 @@ export const useSessionStore = defineStore('session', {
                 JSON.stringify(user)
             )
             router.replace({ name: RouteName.Comoc })
+            // listen for new messages
+            const signaler = getSignaler(user.address)
+            signaler.addEventListener('message', (message) => {
+                info('receive message', message)
+                message.save()
+            })
         },
         signOut(): void {
             // signaler dispose

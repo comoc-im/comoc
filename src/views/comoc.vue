@@ -63,7 +63,7 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref } from 'vue'
 import Message, { MessageType } from '@/db/message'
-import { debug, error, info, warn } from '@/utils/logger'
+import { debug, error, warn } from '@/utils/logger'
 import { fromAddress, stringify, unwrapPrivateKey } from '@/id'
 import { useSessionStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
@@ -90,8 +90,6 @@ if (!currentUser) {
 }
 const signaler = getSignaler(currentUser.address)
 const messageHandler = (message: Message) => {
-    info('receive message', message)
-    message.save()
     if (activeContactID.value === message.from) {
         msgList.value.push(message)
     }

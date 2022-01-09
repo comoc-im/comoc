@@ -4,6 +4,9 @@ import vuePlugin from '@vitejs/plugin-vue'
 
 export default defineConfig({
     base: './',
+    build: {
+        target: 'chrome96',
+    },
     resolve: {
         alias: [
             {

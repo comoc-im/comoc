@@ -1,4 +1,6 @@
-# comoc-web
+# Comoc desktop APP
+
+Comoc desktop APP, also a full comoc node.
 
 ## Project setup
 ```

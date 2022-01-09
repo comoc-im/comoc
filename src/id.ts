@@ -69,6 +69,7 @@ export async function parse(source: string): Promise<ComocID | null> {
 export function importByFile(): Promise<ComocID | null> {
     const input = document.createElement('input')
     input.type = 'file'
+    input.accept = '.id'
     const result = new Promise<ComocID | null>((resolve) => {
         input.onchange = async () => {
             const file = input.files?.[0]

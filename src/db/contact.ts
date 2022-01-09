@@ -1,50 +1,48 @@
-import Model from '@/db/base'
-import { CONTACT_STORE_NAME } from '@/db/store-names'
 import { Address } from '@comoc-im/message'
+import { StoreNames } from '@/db/store-names'
+import { deleteMany, getAllBy, put } from '@/db/base'
 
 export interface Contact {
     username: string
     address: string
 }
 
-export class ContactModel extends Model implements Contact {
+export class ContactModel implements Contact {
     username: string
     address: Address
     owner: Address
 
     static init(db: IDBDatabase): void {
         try {
-            db.deleteObjectStore(CONTACT_STORE_NAME)
+            db.deleteObjectStore(StoreNames.CONTACT)
         } catch (err) {
             //
         }
-        const contactStore = db.createObjectStore(CONTACT_STORE_NAME, {
+        const contactStore = db.createObjectStore(StoreNames.CONTACT, {
             autoIncrement: true,
         })
         contactStore.createIndex('address', 'address', { unique: true })
     }
 
     async save(): Promise<void> {
-        await this.put()
+        await put(StoreNames.CONTACT, this)
     }
 
     static async findAll(owner: Address): Promise<Contact[]> {
-        return super.getAllBy<ContactModel>(
-            CONTACT_STORE_NAME,
+        return getAllBy<ContactModel>(
+            StoreNames.CONTACT,
             (c) => c.owner === owner
         )
     }
 
     public static async deleteMany(owner: Address): Promise<number> {
-        return super.deleteMany<ContactModel>(
-            CONTACT_STORE_NAME,
+        return deleteMany<ContactModel>(
+            StoreNames.CONTACT,
             (c) => c.owner == owner
         )
     }
 
     constructor(address: Address, owner: Address, username = address) {
-        super(CONTACT_STORE_NAME)
-
         this.address = address
         this.username = username
         this.owner = owner

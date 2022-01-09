@@ -1,8 +1,8 @@
 import { Address } from '@comoc-im/message'
-import { USER_STORE_NAME } from '@/db/store-names'
+import { StoreNames } from '@/db/store-names'
 import { derivePassword } from '@/db/user/crypto'
-import Model from '@/db/base'
 import { toAddress, WrappedPrivateKey } from '@/id'
+import { deleteMany, getAll, put } from '@/db/base'
 
 export interface User {
     username: string
@@ -12,7 +12,7 @@ export interface User {
     privateKey: WrappedPrivateKey
 }
 
-export class UserModel extends Model implements User {
+export class UserModel implements User {
     public username: string
     public address: Address
     public passwordHash: string
@@ -32,8 +32,6 @@ export class UserModel extends Model implements User {
         passwordHash: string
         privateKey: WrappedPrivateKey
     }) {
-        super(USER_STORE_NAME)
-
         this.username = username
         this.passwordHash = passwordHash
         this.publicKey = publicKey
@@ -47,11 +45,11 @@ export class UserModel extends Model implements User {
      */
     static init(db: IDBDatabase): void {
         try {
-            db.deleteObjectStore(USER_STORE_NAME)
+            db.deleteObjectStore(StoreNames.USER)
         } catch (err) {
             //
         }
-        const userStore = db.createObjectStore(USER_STORE_NAME, {
+        const userStore = db.createObjectStore(StoreNames.USER, {
             autoIncrement: true,
         })
         userStore.createIndex('username', 'username', { unique: false })
@@ -59,18 +57,18 @@ export class UserModel extends Model implements User {
     }
 
     static async findAll(): Promise<User[]> {
-        return super.getAll<User>(USER_STORE_NAME)
+        return getAll<User>(StoreNames.USER)
     }
 
     public static async delete(user: User): Promise<void> {
-        await super.deleteMany<UserModel>(
-            USER_STORE_NAME,
+        await deleteMany<UserModel>(
+            StoreNames.USER,
             (u) => u.address == user.address
         )
     }
 
     async save(): Promise<void> {
-        await this.put()
+        await put(StoreNames.USER, this)
     }
 }
 

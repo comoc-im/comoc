@@ -1,7 +1,7 @@
-import { MESSAGE_STORE_NAME } from '@/db/store-names'
-import Model from '@/db/base'
 import { Address } from '@comoc-im/message'
 import { v4 } from 'uuid'
+import { StoreNames } from '@/db/store-names'
+import { collectByIndex, deleteMany, put } from '@/db/base'
 
 export enum MessageType {
     Text,
@@ -19,7 +19,7 @@ export function newMessageId(): string {
     return v4()
 }
 
-export class MessageModel extends Model implements Message {
+export class MessageModel implements Message {
     id: string
     owner: Address
     author: Address
@@ -40,8 +40,6 @@ export class MessageModel extends Model implements Message {
         owner: Address
         message: Message
     }) {
-        super(MESSAGE_STORE_NAME)
-
         this.owner = owner
         this.type = type
         this.payload = payload
@@ -54,11 +52,11 @@ export class MessageModel extends Model implements Message {
 
     static init(db: IDBDatabase): void {
         try {
-            db.deleteObjectStore(MESSAGE_STORE_NAME)
+            db.deleteObjectStore(StoreNames.MESSAGE)
         } catch (err) {
             //
         }
-        const store = db.createObjectStore(MESSAGE_STORE_NAME, {
+        const store = db.createObjectStore(StoreNames.MESSAGE, {
             autoIncrement: true,
         })
         store.createIndex('id', 'id', { unique: true })
@@ -75,8 +73,8 @@ export class MessageModel extends Model implements Message {
         targetUserId: string
     ): Promise<Message[]> {
         const result: Message[] = []
-        const messages = Model.collectByIndex<MessageModel>(
-            MESSAGE_STORE_NAME,
+        const messages = await collectByIndex<MessageModel>(
+            StoreNames.MESSAGE,
             'timestamp'
         )
         for await (const msg of messages) {
@@ -91,13 +89,13 @@ export class MessageModel extends Model implements Message {
     }
 
     public static async deleteMany(owner: Address): Promise<number> {
-        return super.deleteMany<MessageModel>(
-            MESSAGE_STORE_NAME,
+        return deleteMany<MessageModel>(
+            StoreNames.MESSAGE,
             (m) => m.owner == owner
         )
     }
 
     async save(): Promise<void> {
-        await this.put()
+        await put(StoreNames.MESSAGE, this)
     }
 }

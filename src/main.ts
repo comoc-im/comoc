@@ -5,7 +5,6 @@ import { RouterView } from 'vue-router'
 import './styles/index.scss'
 import { router } from './router'
 import { recoverSessionState } from './store'
-import dbReady from '@/db'
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faTools } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
@@ -39,6 +38,5 @@ if (process.env.NODE_ENV !== 'development') {
     app.use(router)
     app.mount('#app')
 
-    await dbReady
     await recoverSessionState()
 })()

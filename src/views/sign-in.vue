@@ -90,6 +90,12 @@
                 </template>
             </form>
         </div>
+        <p class="usage-notice">
+            Comoc desktop APP and related services, softwares are still in early
+            development. Use at your own risk.
+            <br />
+            Copyright © 2021-2022 Naeemo
+        </p>
     </div>
 </template>
 <script lang="ts" setup>

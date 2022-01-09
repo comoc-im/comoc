@@ -1,5 +1,11 @@
 <template>
     <div class="login">
+        <a
+            class="github-btn"
+            target="_blank"
+            href="https://github.com/comoc-im/comoc?from=comoc-desktop"
+            >View on <strong>GitHub</strong>
+        </a>
         <div class="auth-lock">
             <template v-if="!currentId">
                 <button type="button" @click="importIdFile">
@@ -246,6 +252,25 @@ watch(username, (newName, oldName) => {
 </script>
 <style lang="scss">
 .login {
+    .github-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 1em;
+        padding: 0.5em;
+        border: 4px solid lightblue;
+        border-radius: 4px;
+        text-decoration: none;
+        background-color: dodgerblue;
+        color: white;
+        transition: background-color 100ms linear;
+
+        &:hover {
+            text-decoration: underline;
+            background-color: #1a79d9;
+        }
+    }
+
     .auth-lock {
         width: 200px;
         margin: 20vh auto 0;
@@ -279,6 +304,15 @@ watch(username, (newName, oldName) => {
             border: 1px solid royalblue;
             //box-shadow: 0 0 5px 1px limegreen;
         }
+    }
+
+    .usage-notice {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        text-align: center;
+        color: #666;
     }
 }
 </style>

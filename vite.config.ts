@@ -3,6 +3,7 @@ import { join } from 'path'
 import vuePlugin from '@vitejs/plugin-vue'
 
 export default defineConfig({
+    base: './',
     resolve: {
         alias: [
             {

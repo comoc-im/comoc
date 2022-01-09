@@ -11,8 +11,14 @@
   "private": false,
   "scripts": {
     "dev": "vite",
-    "dev-preview": "electron .",
-    "build": "vue-tsc && vite build"
+    "dev-preview": "export NODE_ENV=development && electron .",
+    "build": "vue-tsc && vite build && electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "directories": {
+      "output": "build"
+    }
   },
   "dependencies": {
     "@comoc-im/message": "^0.1.6",
@@ -39,6 +45,7 @@
     "@vue/compiler-sfc": "^3.2.26",
     "@vue/eslint-config-typescript": "^10.0.0",
     "electron": "^16.0.6",
+    "electron-builder": "^22.14.5",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",

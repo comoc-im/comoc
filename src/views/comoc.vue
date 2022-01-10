@@ -119,7 +119,8 @@ const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
 async function addContact(): Promise<void> {
     const { value: address } = await ElMessageBox.prompt(
-        `Insert new contact's address`
+        `Paste new contact's address`,
+        'New contact'
     )
     if (!address) {
         notice('warn', `empty address`)
@@ -147,7 +148,9 @@ async function exportID(): Promise<void> {
         return
     }
     const { value: _password } = await ElMessageBox.prompt(
-        'Enter local password'
+        'Enter password to export COMOC id file',
+        'Password',
+        { inputType: 'password' }
     )
     const password = _password ? _password.trim() : ''
     if (!password) {

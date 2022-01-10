@@ -145,9 +145,9 @@ async function signInWithPreviousId() {
     }
     const user = selectedUser.value
     debug('sign in with previous id', user)
-    const { value: passwordInput } = await ElMessageBox.prompt(
-        `Enter user's local password`
-    )
+    const { value: passwordInput } = await ElMessageBox.prompt(`Password`, '', {
+        inputType: 'password',
+    })
     const password = passwordInput?.trim()
     if (!password) {
         notice('warn', 'password necessary')

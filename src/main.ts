@@ -1,5 +1,3 @@
-import 'webrtc-adapter/out/adapter_no_global'
-import 'core-js/stable'
 import { createApp } from 'vue'
 import { RouterView } from 'vue-router'
 import './styles/index.scss'
@@ -9,6 +7,8 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { faTools } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { createPinia } from 'pinia'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 
 library.add(faTools)
 
@@ -34,6 +34,7 @@ if (process.env.NODE_ENV !== 'development') {
  */
 ;(async () => {
     app.component('fas-icon', FontAwesomeIcon)
+    app.use(ElementPlus)
     app.use(createPinia())
     app.use(router)
     app.mount('#app')

@@ -3,14 +3,10 @@ import { RouterView } from 'vue-router'
 import './styles/index.scss'
 import { router } from './router'
 import { recoverSessionState } from './store'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faTools } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-
-library.add(faTools)
+import { Setting } from '@element-plus/icons-vue'
 
 // import './registerServiceWorker'
 const app = createApp(RouterView)
@@ -33,7 +29,7 @@ if (process.env.NODE_ENV !== 'development') {
  * Vue SPA Start
  */
 ;(async () => {
-    app.component('fas-icon', FontAwesomeIcon)
+    app.component(Setting.name, Setting)
     app.use(ElementPlus)
     app.use(createPinia())
     app.use(router)

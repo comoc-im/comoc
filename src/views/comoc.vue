@@ -8,7 +8,7 @@
                 <button type="button" @click="store.signOut">Sign out</button>
             </div>
             <button type="button" class="preferences-btn" title="Preferences">
-                <fas-icon icon="tools" />
+                <el-icon><setting /></el-icon>
             </button>
         </div>
         <div class="contacts">
@@ -239,7 +239,9 @@ async function send() {
         border-right: 1px solid lightgrey;
 
         .preferences-btn {
-            padding: 0.5em;
+            font-size: 18px;
+            padding: 2px;
+            line-height: 0;
         }
     }
 

@@ -76,6 +76,7 @@ import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 import { getSignaler, SignalMessage } from '@/network/signaler'
+import { ElMessageBox } from 'element-plus'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -117,7 +118,9 @@ function contactColor(): string {
 const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
 async function addContact(): Promise<void> {
-    const address = window.prompt(`Insert new contact's address`)
+    const { value: address } = await ElMessageBox.prompt(
+        `Insert new contact's address`
+    )
     if (!address) {
         notice('warn', `empty address`)
         return
@@ -143,7 +146,9 @@ async function exportID(): Promise<void> {
     if (!currentUser) {
         return
     }
-    const _password = window.prompt('Enter local password')
+    const { value: _password } = await ElMessageBox.prompt(
+        'Enter local password'
+    )
     const password = _password ? _password.trim() : ''
     if (!password) {
         return

@@ -117,6 +117,7 @@ import { download } from '@/utils/file'
 import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import { MessageModel } from '@/db/message'
+import { ElMessageBox } from 'element-plus'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -144,7 +145,9 @@ async function signInWithPreviousId() {
     }
     const user = selectedUser.value
     debug('sign in with previous id', user)
-    const passwordInput = window.prompt(`Enter user's local password`)
+    const { value: passwordInput } = await ElMessageBox.prompt(
+        `Enter user's local password`
+    )
     const password = passwordInput?.trim()
     if (!password) {
         notice('warn', 'password necessary')
@@ -166,8 +169,8 @@ async function deleteLocalUser() {
         return
     }
     const user = selectedUser.value
-    const sure = window.confirm(
-        'Delete local user will remove all her local data, you sure?'
+    const sure = await ElMessageBox.confirm(
+        'Delete local user will remove all local data, you sure?'
     )
     if (!sure) {
         return

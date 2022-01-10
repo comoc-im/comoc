@@ -12,12 +12,36 @@
   "scripts": {
     "dev": "vite",
     "dev-preview": "export NODE_ENV=development && electron .",
-    "build": "vue-tsc && vite build && electron-builder",
+    "build": "vue-tsc && vite build && electron-builder -mwl",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "directories": {
       "output": "build"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "src/logo.png"
     }
   },
   "dependencies": {

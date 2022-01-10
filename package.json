@@ -17,7 +17,7 @@
   },
   "build": {
     "directories": {
-      "output": "build"
+      "output": "out"
     },
     "dmg": {
       "contents": [

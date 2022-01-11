@@ -107,6 +107,7 @@ import {
     importByFile,
     parse,
     stringify,
+    unwrapPrivateKey,
     wrapPrivateKey,
 } from '@/id'
 import { useSessionStore } from '@/store'
@@ -161,7 +162,7 @@ async function signInWithPreviousId() {
 
     window.sessionStorage.removeItem(SessionStorageKeys.Username)
     window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
-    store.signIn(user)
+    store.signIn(user, await unwrapPrivateKey(password, user.privateKey))
 }
 
 async function deleteLocalUser() {
@@ -246,7 +247,7 @@ async function signIn() {
         )
         window.sessionStorage.removeItem(SessionStorageKeys.Username)
         window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
-        store.signIn(user)
+        store.signIn(user, currentId.value.privateKey)
     } catch (err) {
         error(`sign in fail, ${err}`)
         notice('error', `sign in fail, ${err}`)

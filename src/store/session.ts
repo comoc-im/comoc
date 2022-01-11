@@ -7,13 +7,20 @@ import { closeSignaler, getSignaler } from '@/network/signaler'
 import { info } from '@/utils/logger'
 import { MessageModel } from '@/db/message'
 
-type SessionStore = {
-    currentUser: User | null
-}
+type SessionStore =
+    | {
+          currentUser: null
+          privateKey: null
+      }
+    | {
+          currentUser: User
+          privateKey: CryptoKey
+      }
 
 export const useSessionStore = defineStore('session', {
     state: (): SessionStore => ({
         currentUser: null,
+        privateKey: null,
     }),
     getters: {
         isSignedIn(state): boolean {
@@ -21,11 +28,12 @@ export const useSessionStore = defineStore('session', {
         },
     },
     actions: {
-        async signIn(user: User): Promise<void> {
+        async signIn(user: User, privateKey: CryptoKey): Promise<void> {
             this.currentUser = user
+            this.privateKey = privateKey
             window.sessionStorage.setItem(
                 SessionStorageKeys.CurrentUser,
-                JSON.stringify(user)
+                JSON.stringify({ user, privateKey })
             )
             await router.replace({ name: RouteName.Comoc })
             // listen for new messages
@@ -57,7 +65,8 @@ export async function recoverSessionState(): Promise<void> {
     const sessionStore = useSessionStore()
     const cache = window.sessionStorage.getItem(SessionStorageKeys.CurrentUser)
     if (cache) {
-        const user: User = JSON.parse(cache)
-        sessionStore.signIn(user)
+        const { user, privateKey }: { user: User; privateKey: CryptoKey } =
+            JSON.parse(cache)
+        sessionStore.signIn(user, privateKey)
     }
 }

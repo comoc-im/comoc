@@ -36,6 +36,20 @@ export async function stringify(id: ComocID): Promise<string> {
     })
 }
 
+export async function sign(
+    privateKey: CryptoKey,
+    data: BufferSource
+): Promise<ArrayBuffer> {
+    return await window.crypto.subtle.sign(
+        {
+            name: 'ECDSA',
+            hash: { name: 'SHA-384' },
+        },
+        privateKey,
+        data
+    )
+}
+
 export async function parse(source: string): Promise<ComocID | null> {
     try {
         const { privateKey, publicKey } = JSON.parse(source) as ComocIdCache

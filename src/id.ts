@@ -1,5 +1,6 @@
 import { debug, error } from '@/utils/logger'
 import { Address, addressToBytes, bytesToAddress } from '@comoc-im/message'
+import { bufferToHex, hexToBuffer } from '@/utils/buffer'
 
 export interface ComocID {
     publicKey: CryptoKey
@@ -39,13 +40,31 @@ export async function stringify(id: ComocID): Promise<string> {
 export async function sign(
     privateKey: CryptoKey,
     data: BufferSource
-): Promise<ArrayBuffer> {
-    return await window.crypto.subtle.sign(
+): Promise<string> {
+    const buffer = await window.crypto.subtle.sign(
         {
             name: 'ECDSA',
             hash: { name: 'SHA-384' },
         },
         privateKey,
+        data
+    )
+    return bufferToHex(buffer)
+}
+
+export async function verify(
+    publicKey: CryptoKey,
+    data: BufferSource,
+    signature: string
+): Promise<boolean> {
+    const signatureBuf = await hexToBuffer(signature)
+    return window.crypto.subtle.verify(
+        {
+            name: 'ECDSA',
+            hash: { name: 'SHA-384' },
+        },
+        publicKey,
+        signatureBuf,
         data
     )
 }

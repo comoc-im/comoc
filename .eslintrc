@@ -22,12 +22,6 @@
   "rules": {
     "prettier/prettier": "error",
     "@typescript-eslint/no-explicit-any": "error",
-    "eqeqeq": "off",
-    "no-undef": "off",
-    "no-unused-vars": "off",
-    "space-infix-ops": "off",
-    "strict": "off",
-    "no-dupe-class-members": "off",
-    "no-use-before-define": "off"
+    "space-infix-ops": "off"
   }
 }

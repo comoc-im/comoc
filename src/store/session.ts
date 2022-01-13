@@ -1,26 +1,28 @@
-import { User } from '@/db/user'
 import { defineStore } from 'pinia'
 import { SessionStorageKeys } from '@/constants'
 import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler, getSignaler } from '@/network/signaler'
-import { info } from '@/utils/logger'
+import { Address } from '@comoc-im/message'
+import { parse, stringify, toAddress } from '@/id'
 import { MessageModel } from '@/db/message'
+import { info } from '@/utils/logger'
 
-type SessionStore =
-    | {
-          currentUser: null
-          privateKey: null
-      }
-    | {
-          currentUser: User
-          privateKey: CryptoKey
-      }
+export type SessionUser = {
+    username: string
+    address: Address
+    passwordHash: string
+    publicKey: CryptoKey
+    privateKey: CryptoKey
+}
+
+type SessionStore = {
+    currentUser: SessionUser | null
+}
 
 export const useSessionStore = defineStore('session', {
     state: (): SessionStore => ({
         currentUser: null,
-        privateKey: null,
     }),
     getters: {
         isSignedIn(state): boolean {
@@ -28,30 +30,42 @@ export const useSessionStore = defineStore('session', {
         },
     },
     actions: {
-        async signIn(user: User, privateKey: CryptoKey): Promise<void> {
+        async signIn(user: SessionUser): Promise<void> {
             this.currentUser = user
-            this.privateKey = privateKey
             window.sessionStorage.setItem(
                 SessionStorageKeys.CurrentUser,
-                JSON.stringify({ user, privateKey })
+                JSON.stringify({
+                    username: user.username,
+                    passwordHash: user.passwordHash,
+                    id: await stringify({
+                        privateKey: user.privateKey,
+                        publicKey: user.publicKey,
+                    }),
+                })
             )
             await router.replace({ name: RouteName.Comoc })
             // listen for new messages
-            const signaler = getSignaler(user.address)
+            const signaler = getSignaler(user)
             signaler.addEventListener('message', async (message) => {
                 info('receive message', message)
                 await new MessageModel({
                     from: message._from,
                     to: message._to,
                     owner: user.address,
-                    message,
+                    message: {
+                        author: message._from,
+                        id: message.id,
+                        type: message.type,
+                        timestamp: message.timestamp,
+                        payload: message.payload,
+                    },
                 }).save()
             })
         },
         async signOut(): Promise<void> {
             // signaler dispose
-            if (this.currentUser?.address) {
-                closeSignaler(this.currentUser.address)
+            if (this.currentUser) {
+                closeSignaler()
             }
             window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
             this.currentUser = null
@@ -65,8 +79,30 @@ export async function recoverSessionState(): Promise<void> {
     const sessionStore = useSessionStore()
     const cache = window.sessionStorage.getItem(SessionStorageKeys.CurrentUser)
     if (cache) {
-        const { user, privateKey }: { user: User; privateKey: CryptoKey } =
-            JSON.parse(cache)
-        sessionStore.signIn(user, privateKey)
+        try {
+            const {
+                username,
+                passwordHash,
+                id,
+            }: {
+                username: string
+                passwordHash: string
+                id: string
+            } = JSON.parse(cache)
+            const idCache = await parse(id)
+            if (idCache) {
+                sessionStore.signIn({
+                    username,
+                    address: await toAddress(idCache.publicKey),
+                    passwordHash,
+                    privateKey: idCache.privateKey,
+                    publicKey: idCache.publicKey,
+                })
+            } else {
+                window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
+            }
+        } catch (err) {
+            window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
+        }
     }
 }

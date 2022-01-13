@@ -66,7 +66,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
-import { fromAddress, stringify, unwrapPrivateKey } from '@/id'
+import { fromAddress, stringify } from '@/id'
 import { useSessionStore } from '@/store'
 import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
@@ -91,7 +91,7 @@ const currentContact = computed(() =>
 if (!currentUser) {
     throw new Error('sign in needed')
 }
-const signaler = getSignaler(currentUser.address)
+const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
     if (activeContactID.value === message._from) {
         msgList.value.push(message)
@@ -166,12 +166,10 @@ async function exportID(): Promise<void> {
         return
     }
 
-    const privateKey = await unwrapPrivateKey(password, currentUser.privateKey)
-
     download(
         await stringify({
             publicKey: currentUser.publicKey,
-            privateKey,
+            privateKey: currentUser.privateKey,
         }),
         `${currentUser.username}.id`
     )

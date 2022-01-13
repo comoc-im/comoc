@@ -162,7 +162,13 @@ async function signInWithPreviousId() {
 
     window.sessionStorage.removeItem(SessionStorageKeys.Username)
     window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
-    store.signIn(user, await unwrapPrivateKey(password, user.privateKey))
+    store.signIn({
+        username: user.username,
+        address: user.address,
+        passwordHash: user.passwordHash,
+        publicKey: user.publicKey,
+        privateKey: await unwrapPrivateKey(password, user.privateKey),
+    })
 }
 
 async function deleteLocalUser() {
@@ -247,7 +253,13 @@ async function signIn() {
         )
         window.sessionStorage.removeItem(SessionStorageKeys.Username)
         window.sessionStorage.removeItem(SessionStorageKeys.CurrentId)
-        store.signIn(user, currentId.value.privateKey)
+        store.signIn({
+            username: user.username,
+            address: user.address,
+            passwordHash: user.passwordHash,
+            publicKey: user.publicKey,
+            privateKey: currentId.value.privateKey,
+        })
     } catch (err) {
         error(`sign in fail, ${err}`)
         notice('error', `sign in fail, ${err}`)

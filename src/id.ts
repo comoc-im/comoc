@@ -1,6 +1,11 @@
 import { debug, error } from '@/utils/logger'
-import { Address, addressToBytes, bytesToAddress } from '@comoc-im/message'
-import { bufferToHex, hexToBuffer } from '@/utils/buffer'
+import {
+    Address,
+    addressToBytes,
+    bytesToAddress,
+    bytesToHex,
+    hexToBytes,
+} from '@comoc-im/message'
 
 export interface ComocID {
     publicKey: CryptoKey
@@ -49,7 +54,7 @@ export async function sign(
         privateKey,
         data
     )
-    return bufferToHex(buffer)
+    return bytesToHex(buffer)
 }
 
 export async function verify(
@@ -57,7 +62,7 @@ export async function verify(
     data: BufferSource,
     signature: string
 ): Promise<boolean> {
-    const signatureBuf = await hexToBuffer(signature)
+    const signatureBuf = await hexToBytes(signature)
     return window.crypto.subtle.verify(
         {
             name: 'ECDSA',

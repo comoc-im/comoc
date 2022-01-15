@@ -7,8 +7,8 @@ import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import { Setting } from '@element-plus/icons-vue'
+import './registerServiceWorker'
 
-// import './registerServiceWorker'
 const app = createApp(RouterView)
 
 // Vue 开发选项

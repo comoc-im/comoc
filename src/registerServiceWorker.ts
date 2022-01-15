@@ -1,34 +1,18 @@
-/* eslint-disable no-console */
+import { registerSW } from 'virtual:pwa-register'
+import { ElMessageBox } from 'element-plus/es'
 
-import { register } from 'register-service-worker'
-
-if (process.env.NODE_ENV === 'production') {
-    register(`${process.env.BASE_URL}service-worker.js`, {
-        ready() {
-            console.log(
-                'App is being served from cache by a service worker.\n' +
-                    'For more details, visit https://goo.gl/AFskqB'
-            )
-        },
-        registered() {
-            console.log('Service worker has been registered.')
-        },
-        cached() {
-            console.log('Content has been cached for offline use.')
-        },
-        updatefound() {
-            console.log('New content is downloading.')
-        },
-        updated() {
-            console.log('New content is available; please refresh.')
-        },
-        offline() {
-            console.log(
-                'No internet connection found. App is running in offline mode.'
-            )
-        },
-        error(error) {
-            console.error('Error during service worker registration:', error)
-        },
-    })
-}
+const updateSW = registerSW({
+    async onOfflineReady() {
+        // const div = document.createElement('div')
+        //
+        // div.style.position = 'absolute'
+        // div.style.left = '0'
+        // div.style.top = '0'
+        // div.style.right = '0'
+        // div.style.bottom = '0'
+        // document.body.appendChild(div)
+        await ElMessageBox.confirm(
+            'Delete local user will remove all local data, you sure?'
+        )
+    },
+})

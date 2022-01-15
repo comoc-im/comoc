@@ -53,7 +53,7 @@
                 <textarea
                     v-model="inputText"
                     class="chat-textarea"
-                    @keydown.enter="send"
+                    @keydown.enter.prevent="send"
                 ></textarea>
                 <button class="send-btn" type="button" @click="send">
                     Send

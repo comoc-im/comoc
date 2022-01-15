@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "vite",
     "dev-preview": "export NODE_ENV=development && electron .",
+    "build-web": "vue-tsc && vite build",
     "build": "vue-tsc && vite build && electron-builder -mwl",
     "postinstall": "electron-builder install-app-deps"
   },

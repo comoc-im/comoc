@@ -93,6 +93,7 @@ if (!currentUser) {
 }
 const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
+    notice('info', message.payload)
     if (activeContactID.value === message._from) {
         msgList.value.push(message)
     }

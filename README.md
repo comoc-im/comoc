@@ -1,6 +1,4 @@
-# Comoc desktop APP
-
-Comoc desktop APP, also a full comoc node.
+# Comoc IM
 
 > This project is still in early development. Use at your own risk.
 

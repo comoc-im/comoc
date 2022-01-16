@@ -1,7 +1,7 @@
 {
   "name": "comoc",
   "version": "0.1.0",
-  "description": "Comoc desktop APP",
+  "description": "Comoc IM",
   "main": "main.js",
   "repository": "git@github.com:comoc-im/comoc.git",
   "author": "Naeemo <naeemo@qq.com>",

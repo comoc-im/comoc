@@ -3,7 +3,7 @@ import { error } from '@/utils/logger'
 export function notice(level: 'error' | 'warn' | 'info', msg: string): void {
     // Let's check if the browser supports notifications
     if (!('Notification' in window)) {
-        error('This browser does not support desktop notification')
+        error('This browser does not support notification')
     }
 
     // Let's check whether notification permissions have already been granted

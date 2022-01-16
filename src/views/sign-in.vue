@@ -3,7 +3,7 @@
         <a
             class="github-btn"
             target="_blank"
-            href="https://github.com/comoc-im/comoc?from=comoc-desktop"
+            href="https://github.com/comoc-im/comoc?from=comoc"
             >View on <strong>GitHub</strong>
         </a>
         <div class="auth-lock">
@@ -91,7 +91,7 @@
             </form>
         </div>
         <p class="usage-notice">
-            Comoc desktop APP and related services, softwares are still in early
+            Comoc IM and related services, software are still in early
             development. Use at your own risk.
             <br />
             Copyright © 2021-2022 Naeemo

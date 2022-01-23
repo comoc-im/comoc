@@ -1,13 +1,14 @@
 import { createApp } from 'vue'
 import { RouterView } from 'vue-router'
 import './styles/index.scss'
-import { router } from './router'
 import { recoverSessionState } from './store'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-import { Setting } from '@element-plus/icons-vue'
 import './registerServiceWorker'
+import { isMobile } from '@/utils/ua'
+import { router } from '@/router'
+
+const mobile = import('@/mobile')
+const desktop = import('@/desktop')
 
 const app = createApp(RouterView)
 
@@ -29,11 +30,16 @@ if (process.env.NODE_ENV !== 'development') {
  * Vue SPA Start
  */
 ;(async () => {
-    app.component(Setting.name, Setting)
-    app.use(ElementPlus)
     app.use(createPinia())
     app.use(router)
-    app.mount('#app')
+    if (isMobile()) {
+        const { init } = await mobile
+        init(app)
+    } else {
+        const { init } = await desktop
+        init(app)
+    }
 
+    app.mount('#app')
     await recoverSessionState()
 })()

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { join } from 'path'
 import vuePlugin from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import styleImport, { VantResolve } from 'vite-plugin-style-import'
 
 export default defineConfig({
     base: './',
@@ -19,6 +20,9 @@ export default defineConfig({
     },
     plugins: [
         vuePlugin(),
+        styleImport({
+            resolves: [VantResolve()],
+        }),
         VitePWA({
             registerType: 'autoUpdate',
             includeAssets: [

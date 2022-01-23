@@ -1,21 +1,40 @@
 import { RouteRecordRaw } from 'vue-router'
-
-const signIn = () => import('../views/sign-in.vue')
-const Comoc = () => import('../views/comoc.vue')
+import { isMobile } from '@/utils/ua'
 
 export enum RouteName {
     SignIn = 'signIn',
     Comoc = 'comoc',
 }
-export const routes: RouteRecordRaw[] = [
-    { path: '/sign_in', name: RouteName.SignIn, component: signIn },
-    {
-        path: '/comoc',
-        name: RouteName.Comoc,
-        component: Comoc,
-    },
-    {
-        path: '/:pathMatch(.*)*',
-        redirect: { name: RouteName.SignIn },
-    },
-]
+export const routes: RouteRecordRaw[] = isMobile()
+    ? [
+          {
+              path: '/sign_in',
+              name: RouteName.SignIn,
+              component: () => import('@/mobile/views/sign-in.vue'),
+          },
+          {
+              path: '/comoc',
+              name: RouteName.Comoc,
+              component: () => import('@/mobile/views/comoc.vue'),
+          },
+          {
+              path: '/:pathMatch(.*)*',
+              redirect: { name: RouteName.SignIn },
+          },
+      ]
+    : [
+          {
+              path: '/sign_in',
+              name: RouteName.SignIn,
+              component: () => import('@/desktop/views/sign-in.vue'),
+          },
+          {
+              path: '/comoc',
+              name: RouteName.Comoc,
+              component: () => import('@/desktop/views/comoc.vue'),
+          },
+          {
+              path: '/:pathMatch(.*)*',
+              redirect: { name: RouteName.SignIn },
+          },
+      ]

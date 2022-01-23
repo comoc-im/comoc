@@ -222,7 +222,7 @@ async function send() {
 }
 </script>
 <style lang="scss" scoped>
-@import '../styles/base/variable';
+@import '../../styles/base/variable';
 
 .comoc-web {
     display: flex;

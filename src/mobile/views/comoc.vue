@@ -60,14 +60,26 @@
         <!--                </button>-->
         <!--            </div>-->
         <!--        </div>-->
-        <van-list
-            v-show="active === 0"
-            v-model:loading="loading"
-            :finished="finished"
-            finished-text="Finished"
-            @load="onLoad"
-        >
-            <van-cell v-for="item in list" :key="item" :title="item" />
+        <van-list v-show="active === 0"> </van-list>
+        <!-- contacts -->
+        <van-index-bar v-show="active === 1">
+            <van-index-anchor index="A" />
+            <van-cell
+                v-for="c in contacts"
+                :key="c.address"
+                :title="c.username.slice(0, 40)"
+            />
+        </van-index-bar>
+        <!-- Preference -->
+        <van-list v-show="active === 2">
+            <van-cell-group inset title="Preference">
+                <van-cell title="Cell title" value="Content" />
+                <van-cell
+                    title="Cell title"
+                    value="Content"
+                    label="Description"
+                />
+            </van-cell-group>
         </van-list>
         <van-tabbar v-model="active">
             <van-tabbar-item icon="chat">Message</van-tabbar-item>
@@ -239,7 +251,8 @@ async function send() {
 @import '../../styles/base/variable';
 
 .comoc-web {
-    display: flex;
+    background-color: lightgrey;
     height: 100vh;
+    width: 100vw;
 }
 </style>

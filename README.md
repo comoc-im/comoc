@@ -19,17 +19,17 @@ is a Comoc node.
 
 ## Project setup
 ```
-yarn install
+pnpm install
 ```
 
 ### Development
 ```
-yarn dev
+pnpm dev
 ```
 
 ### Build
 ```
-yarn build
+pnpm build
 ```
 
 ---

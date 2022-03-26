@@ -35,6 +35,8 @@ specifiers:
   vue: ^3.2.31
   vue-router: ^4.0.12
   vue-tsc: ^0.31.3
+  workbox-build: ^6.5.2
+  workbox-window: ^6.5.2
 
 dependencies:
   '@comoc-im/message': 0.1.7
@@ -73,6 +75,8 @@ devDependencies:
   vite-plugin-pwa: 0.11.13_vite@2.8.1
   vite-plugin-style-import: 1.4.1_vite@2.8.1
   vue-tsc: 0.31.3_typescript@4.5.5
+  workbox-build: 6.5.2
+  workbox-window: 6.5.2
 
 packages:
 
@@ -2748,6 +2752,7 @@ packages:
     resolution: {integrity: sha512-SVeeyiOeinV5JCPHXMdKOgK1YVbak/4+8WL2rBnfqRYpA5FaeFaQnQWb25x628am1w70CbipGDv9S51biph63A==}
     engines: {node: '>=8'}
     os: [darwin]
+    deprecated: 'Disk image license agreements are deprecated by Apple and will probably be removed in a future macOS release. Discussion at: https://github.com/argv-minus-one/dmg-license/issues/11'
     hasBin: true
     requiresBuild: true
     dependencies:
@@ -5225,11 +5230,6 @@ packages:
       source-map: 0.6.1
     dev: true
 
-  /source-map-url/0.4.1:
-    resolution: {integrity: sha512-cPiFOTLUKvJFIg4SKVScy4ilPPW6rFgMgfuZJPNoDuMs3nC1HbMUycBoJw77xFIp6z1UJQJOfx6C9GMH80DiTw==}
-    deprecated: See https://github.com/lydell/source-map-url#deprecated
-    dev: true
-
   /source-map/0.5.7:
     resolution: {integrity: sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=}
     engines: {node: '>=0.10.0'}
@@ -5707,8 +5707,8 @@ packages:
       pretty-bytes: 5.6.0
       rollup: 2.67.2
       vite: 2.8.1_sass@1.49.7
-      workbox-build: 6.4.2
-      workbox-window: 6.4.2
+      workbox-build: 6.5.2
+      workbox-window: 6.5.2
     transitivePeerDependencies:
       - '@types/babel__core'
       - acorn
@@ -5986,21 +5986,21 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /workbox-background-sync/6.4.2:
-    resolution: {integrity: sha512-P7c8uG5X2k+DMICH9xeSA9eUlCOjHHYoB42Rq+RtUpuwBxUOflAXR1zdsMWj81LopE4gjKXlTw7BFd1BDAHo7g==}
+  /workbox-background-sync/6.5.2:
+    resolution: {integrity: sha512-EjG37LSMDJ1TFlFg56wx6YXbH4/NkG09B9OHvyxx+cGl2gP5OuOzsCY3rOPJSpbcz6jpuA40VIC3HzSD4OvE1g==}
     dependencies:
       idb: 6.1.5
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-broadcast-update/6.4.2:
-    resolution: {integrity: sha512-qnBwQyE0+PWFFc/n4ISXINE49m44gbEreJUYt2ldGH3+CNrLmJ1egJOOyUqqu9R4Eb7QrXcmB34ClXG7S37LbA==}
+  /workbox-broadcast-update/6.5.2:
+    resolution: {integrity: sha512-DjJYraYnprTZE/AQNoeogaxI1dPuYmbw+ZJeeP8uXBSbg9SNv5wLYofQgywXeRepv4yr/vglMo9yaHUmBMc+4Q==}
     dependencies:
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-build/6.4.2:
-    resolution: {integrity: sha512-WMdYLhDIsuzViOTXDH+tJ1GijkFp5khSYolnxR/11zmfhNDtuo7jof72xPGFy+KRpsz6tug39RhivCj77qqO0w==}
+  /workbox-build/6.5.2:
+    resolution: {integrity: sha512-TVi4Otf6fgwikBeMpXF9n0awHfZTMNu/nwlMIT9W+c13yvxkmDFMPb7vHYK6RUmbcxwPnz4I/R+uL76+JxG4JQ==}
     engines: {node: '>=10.0.0'}
     dependencies:
       '@apideck/better-ajv-errors': 0.3.3_ajv@8.10.0
@@ -6021,117 +6021,116 @@ packages:
       rollup: 2.67.2
       rollup-plugin-terser: 7.0.2_rollup@2.67.2
       source-map: 0.8.0-beta.0
-      source-map-url: 0.4.1
       stringify-object: 3.3.0
       strip-comments: 2.0.1
       tempy: 0.6.0
       upath: 1.2.0
-      workbox-background-sync: 6.4.2
-      workbox-broadcast-update: 6.4.2
-      workbox-cacheable-response: 6.4.2
-      workbox-core: 6.4.2
-      workbox-expiration: 6.4.2
-      workbox-google-analytics: 6.4.2
-      workbox-navigation-preload: 6.4.2
-      workbox-precaching: 6.4.2
-      workbox-range-requests: 6.4.2
-      workbox-recipes: 6.4.2
-      workbox-routing: 6.4.2
-      workbox-strategies: 6.4.2
-      workbox-streams: 6.4.2
-      workbox-sw: 6.4.2
-      workbox-window: 6.4.2
+      workbox-background-sync: 6.5.2
+      workbox-broadcast-update: 6.5.2
+      workbox-cacheable-response: 6.5.2
+      workbox-core: 6.5.2
+      workbox-expiration: 6.5.2
+      workbox-google-analytics: 6.5.2
+      workbox-navigation-preload: 6.5.2
+      workbox-precaching: 6.5.2
+      workbox-range-requests: 6.5.2
+      workbox-recipes: 6.5.2
+      workbox-routing: 6.5.2
+      workbox-strategies: 6.5.2
+      workbox-streams: 6.5.2
+      workbox-sw: 6.5.2
+      workbox-window: 6.5.2
     transitivePeerDependencies:
       - '@types/babel__core'
       - acorn
       - supports-color
     dev: true
 
-  /workbox-cacheable-response/6.4.2:
-    resolution: {integrity: sha512-9FE1W/cKffk1AJzImxgEN0ceWpyz1tqNjZVtA3/LAvYL3AC5SbIkhc7ZCO82WmO9IjTfu8Vut2X/C7ViMSF7TA==}
+  /workbox-cacheable-response/6.5.2:
+    resolution: {integrity: sha512-UnHGih6xqloV808T7ve1iNKZMbpML0jGLqkkmyXkJbZc5j16+HRSV61Qrh+tiq3E3yLvFMGJ3AUBODOPNLWpTg==}
     dependencies:
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-core/6.4.2:
-    resolution: {integrity: sha512-1U6cdEYPcajRXiboSlpJx6U7TvhIKbxRRerfepAJu2hniKwJ3DHILjpU/zx3yvzSBCWcNJDoFalf7Vgd7ey/rw==}
+  /workbox-core/6.5.2:
+    resolution: {integrity: sha512-IlxLGQf+wJHCR+NM0UWqDh4xe/Gu6sg2i4tfZk6WIij34IVk9BdOQgi6WvqSHd879jbQIUgL2fBdJUJyAP5ypQ==}
     dev: true
 
-  /workbox-expiration/6.4.2:
-    resolution: {integrity: sha512-0hbpBj0tDnW+DZOUmwZqntB/8xrXOgO34i7s00Si/VlFJvvpRKg1leXdHHU8ykoSBd6+F2KDcMP3swoCi5guLw==}
+  /workbox-expiration/6.5.2:
+    resolution: {integrity: sha512-5Hfp0uxTZJrgTiy9W7AjIIec+9uTOtnxY/tRBm4DbqcWKaWbVTa+izrKzzOT4MXRJJIJUmvRhWw4oo8tpmMouw==}
     dependencies:
       idb: 6.1.5
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-google-analytics/6.4.2:
-    resolution: {integrity: sha512-u+gxs3jXovPb1oul4CTBOb+T9fS1oZG+ZE6AzS7l40vnyfJV79DaLBvlpEZfXGv3CjMdV1sT/ltdOrKzo7HcGw==}
+  /workbox-google-analytics/6.5.2:
+    resolution: {integrity: sha512-8SMar+N0xIreP5/2we3dwtN1FUmTMScoopL86aKdXBpio8vXc8Oqb5fCJG32ialjN8BAOzDqx/FnGeCtkIlyvw==}
     dependencies:
-      workbox-background-sync: 6.4.2
-      workbox-core: 6.4.2
-      workbox-routing: 6.4.2
-      workbox-strategies: 6.4.2
+      workbox-background-sync: 6.5.2
+      workbox-core: 6.5.2
+      workbox-routing: 6.5.2
+      workbox-strategies: 6.5.2
     dev: true
 
-  /workbox-navigation-preload/6.4.2:
-    resolution: {integrity: sha512-viyejlCtlKsbJCBHwhSBbWc57MwPXvUrc8P7d+87AxBGPU+JuWkT6nvBANgVgFz6FUhCvRC8aYt+B1helo166g==}
+  /workbox-navigation-preload/6.5.2:
+    resolution: {integrity: sha512-iqDNWWMswjCsZuvGFDpcX1Z8InBVAlVBELJ28xShsWWntALzbtr0PXMnm2WHkXCc56JimmGldZi1N5yDPiTPOg==}
     dependencies:
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-precaching/6.4.2:
-    resolution: {integrity: sha512-CZ6uwFN/2wb4noHVlALL7UqPFbLfez/9S2GAzGAb0Sk876ul9ukRKPJJ6gtsxfE2HSTwqwuyNVa6xWyeyJ1XSA==}
+  /workbox-precaching/6.5.2:
+    resolution: {integrity: sha512-OZAlQ8AAT20KugGKKuJMHdQ8X1IyNQaLv+mPTHj+8Dmv8peBq5uWNzs4g/1OSFmXsbXZ6a1CBC6YtQWVPhJQ9w==}
     dependencies:
-      workbox-core: 6.4.2
-      workbox-routing: 6.4.2
-      workbox-strategies: 6.4.2
+      workbox-core: 6.5.2
+      workbox-routing: 6.5.2
+      workbox-strategies: 6.5.2
     dev: true
 
-  /workbox-range-requests/6.4.2:
-    resolution: {integrity: sha512-SowF3z69hr3Po/w7+xarWfzxJX/3Fo0uSG72Zg4g5FWWnHpq2zPvgbWerBZIa81zpJVUdYpMa3akJJsv+LaO1Q==}
+  /workbox-range-requests/6.5.2:
+    resolution: {integrity: sha512-zi5VqF1mWqfCyJLTMXn1EuH/E6nisqWDK1VmOJ+TnjxGttaQrseOhMn+BMvULFHeF8AvrQ0ogfQ6bSv0rcfAlg==}
     dependencies:
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-recipes/6.4.2:
-    resolution: {integrity: sha512-/oVxlZFpAjFVbY+3PoGEXe8qyvtmqMrTdWhbOfbwokNFtUZ/JCtanDKgwDv9x3AebqGAoJRvQNSru0F4nG+gWA==}
+  /workbox-recipes/6.5.2:
+    resolution: {integrity: sha512-2lcUKMYDiJKvuvRotOxLjH2z9K7jhj8GNUaHxHNkJYbTCUN3LsX1cWrsgeJFDZ/LgI565t3fntpbG9J415ZBXA==}
     dependencies:
-      workbox-cacheable-response: 6.4.2
-      workbox-core: 6.4.2
-      workbox-expiration: 6.4.2
-      workbox-precaching: 6.4.2
-      workbox-routing: 6.4.2
-      workbox-strategies: 6.4.2
+      workbox-cacheable-response: 6.5.2
+      workbox-core: 6.5.2
+      workbox-expiration: 6.5.2
+      workbox-precaching: 6.5.2
+      workbox-routing: 6.5.2
+      workbox-strategies: 6.5.2
     dev: true
 
-  /workbox-routing/6.4.2:
-    resolution: {integrity: sha512-0ss/n9PAcHjTy4Ad7l2puuod4WtsnRYu9BrmHcu6Dk4PgWeJo1t5VnGufPxNtcuyPGQ3OdnMdlmhMJ57sSrrSw==}
+  /workbox-routing/6.5.2:
+    resolution: {integrity: sha512-nR1w5PjF6IVwo0SX3oE88LhmGFmTnqqU7zpGJQQPZiKJfEKgDENQIM9mh3L1ksdFd9Y3CZVkusopHfxQvit/BA==}
     dependencies:
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-strategies/6.4.2:
-    resolution: {integrity: sha512-YXh9E9dZGEO1EiPC3jPe2CbztO5WT8Ruj8wiYZM56XqEJp5YlGTtqRjghV+JovWOqkWdR+amJpV31KPWQUvn1Q==}
+  /workbox-strategies/6.5.2:
+    resolution: {integrity: sha512-fgbwaUMxbG39BHjJIs2y2X21C0bmf1Oq3vMQxJ1hr6y5JMJIm8rvKCcf1EIdAr+PjKdSk4ddmgyBQ4oO8be4Uw==}
     dependencies:
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
-  /workbox-streams/6.4.2:
-    resolution: {integrity: sha512-ROEGlZHGVEgpa5bOZefiJEVsi5PsFjJG9Xd+wnDbApsCO9xq9rYFopF+IRq9tChyYzhBnyk2hJxbQVWphz3sog==}
+  /workbox-streams/6.5.2:
+    resolution: {integrity: sha512-ovD0P4UrgPtZ2Lfc/8E8teb1RqNOSZr+1ZPqLR6sGRZnKZviqKbQC3zVvvkhmOIwhWbpL7bQlWveLVONHjxd5w==}
     dependencies:
-      workbox-core: 6.4.2
-      workbox-routing: 6.4.2
+      workbox-core: 6.5.2
+      workbox-routing: 6.5.2
     dev: true
 
-  /workbox-sw/6.4.2:
-    resolution: {integrity: sha512-A2qdu9TLktfIM5NE/8+yYwfWu+JgDaCkbo5ikrky2c7r9v2X6DcJ+zSLphNHHLwM/0eVk5XVf1mC5HGhYpMhhg==}
+  /workbox-sw/6.5.2:
+    resolution: {integrity: sha512-2KhlYqtkoqlnPdllj2ujXUKRuEFsRDIp6rdE4l1PsxiFHRAFaRTisRQpGvRem5yxgXEr+fcEKiuZUW2r70KZaw==}
     dev: true
 
-  /workbox-window/6.4.2:
-    resolution: {integrity: sha512-KVyRKmrJg7iB+uym/B/CnEUEFG9CvnTU1Bq5xpXHbtgD9l+ShDekSl1wYpqw/O0JfeeQVOFb8CiNfvnwWwqnWQ==}
+  /workbox-window/6.5.2:
+    resolution: {integrity: sha512-2kZH37r9Wx8swjEOL4B8uGM53lakMxsKkQ7mOKzGA/QAn/DQTEZGrdHWtypk2tbhKY5S0jvPS+sYDnb2Z3378A==}
     dependencies:
       '@types/trusted-types': 2.0.2
-      workbox-core: 6.4.2
+      workbox-core: 6.5.2
     dev: true
 
   /wrap-ansi/6.2.0:

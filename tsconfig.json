@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "isolatedModules": true,
     "alwaysStrict": true,
     "target": "esnext",
     "module": "esnext",

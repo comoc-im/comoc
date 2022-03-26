@@ -101,7 +101,7 @@ import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 import { getSignaler, SignalMessage } from '@/network/signaler'
-import { cPrompt } from '@/mobile/components/c-prompt.vue'
+import { cPrompt } from '@/mobile/components'
 
 const active = ref(0)
 const store = useSessionStore()

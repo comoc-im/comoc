@@ -119,7 +119,7 @@ import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import { MessageModel } from '@/db/message'
 import { Dialog } from 'vant'
-import { cPrompt } from '@/mobile/components/c-prompt.vue'
+import { cPrompt } from '@/mobile/components'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''

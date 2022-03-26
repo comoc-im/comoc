@@ -101,7 +101,7 @@ import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 import { getSignaler, SignalMessage } from '@/network/signaler'
-import { ElMessageBox } from 'element-plus'
+import { cPrompt } from '@/mobile/components/c-prompt.vue'
 
 const active = ref(0)
 const store = useSessionStore()
@@ -145,9 +145,10 @@ function contactColor(): string {
 const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
 async function addContact(): Promise<void> {
-    const { value: address } = await ElMessageBox.prompt(
+    const address = await cPrompt(
         `Paste new contact's address`,
-        'New contact'
+        'New contact',
+        'textarea'
     )
     if (!address) {
         notice('warn', `empty address`)
@@ -174,10 +175,10 @@ async function exportID(): Promise<void> {
     if (!currentUser) {
         return
     }
-    const { value: _password } = await ElMessageBox.prompt(
+    const _password = await cPrompt(
         'Enter password to export COMOC id file',
         'Password',
-        { inputType: 'password' }
+        'password'
     )
     const password = _password ? _password.trim() : ''
     if (!password) {

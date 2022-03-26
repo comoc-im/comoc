@@ -119,6 +119,7 @@ import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import { MessageModel } from '@/db/message'
 import { Dialog } from 'vant'
+import { cPrompt } from '@/mobile/components/c-prompt.vue'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -146,7 +147,7 @@ async function signInWithPreviousId() {
     }
     const user = selectedUser.value
     debug('sign in with previous id', user)
-    const passwordInput = await window.prompt(`Password`)
+    const passwordInput = await cPrompt('', `Password`, 'password')
     const password = passwordInput?.trim()
     if (!password) {
         notice('warn', 'password necessary')

@@ -255,5 +255,9 @@ async function send() {
     background-color: lightgrey;
     height: 100vh;
     width: 100vw;
+
+    .van-tabbar {
+        position: fixed;
+    }
 }
 </style>

@@ -7,7 +7,7 @@ import styleImport, { VantResolve } from 'vite-plugin-style-import'
 export default defineConfig({
     base: './',
     build: {
-        target: 'chrome96',
+        target: 'chrome100',
         sourcemap: true,
     },
     resolve: {

@@ -13,7 +13,7 @@
         </div>
         <div class="contacts">
             <div
-                v-for="contact in contacts"
+                v-for="contact in store.contacts"
                 :key="contact.address"
                 :title="'chat with ' + contact.username"
                 :class="{ active: activeContactID === contact.address }"
@@ -68,7 +68,6 @@ import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
 import { fromAddress, stringify } from '@/id'
 import { useSessionStore } from '@/store'
-import { toDateTimeStr } from '@/utils/date'
 import { notice } from '@/utils/notification'
 import { Contact, ContactModel } from '@/db/contact'
 import { Address } from '@comoc-im/message'
@@ -80,12 +79,11 @@ import { ElMessageBox } from 'element-plus'
 
 const store = useSessionStore()
 const { currentUser } = store
-const contacts = ref<Contact[]>([])
 const activeContactID = ref<Address>('')
 const inputText = ref<string>('')
 const msgList = ref<Message[]>([])
 const currentContact = computed(() =>
-    contacts.value.find((c) => c.address === activeContactID.value)
+    store.contacts.find((c) => c.address === activeContactID.value)
 )
 
 if (!currentUser) {
@@ -103,11 +101,7 @@ onBeforeUnmount(() => {
     signaler.removeEventListener('message', messageHandler)
 })
 
-refreshContacts(currentUser.address)
-
-async function refreshContacts(owner: Address) {
-    ContactModel.findAll(owner).then((cs) => (contacts.value = cs))
-}
+store.refreshContacts(currentUser.address)
 
 function contactColor(): string {
     return randomColor({
@@ -141,7 +135,7 @@ async function addContact(): Promise<void> {
     const contact = new ContactModel(address as Address, currentUser.address)
 
     await contact.save()
-    await refreshContacts(currentUser.address)
+    await store.refreshContacts(currentUser.address)
 }
 
 async function exportID(): Promise<void> {

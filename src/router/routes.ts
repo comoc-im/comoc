@@ -15,7 +15,7 @@ export const routes: RouteRecordRaw[] = isMobile()
           {
               path: '/comoc',
               name: RouteName.Comoc,
-              component: () => import('@/mobile/views/comoc.vue'),
+              component: () => import('@/mobile/views/comoc/comoc.vue'),
           },
           {
               path: '/:pathMatch(.*)*',

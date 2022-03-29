@@ -1,12 +1,13 @@
 import { App } from 'vue'
 import {
+    Cell,
+    CellGroup,
+    IndexAnchor,
+    IndexBar,
     List,
+    Search,
     Tabbar,
     TabbarItem,
-    Cell,
-    IndexBar,
-    IndexAnchor,
-    CellGroup,
 } from 'vant'
 
 export function init(app: App<Element>) {
@@ -18,4 +19,5 @@ export function init(app: App<Element>) {
     app.use(CellGroup)
     app.use(IndexBar)
     app.use(IndexAnchor)
+    app.use(Search)
 }

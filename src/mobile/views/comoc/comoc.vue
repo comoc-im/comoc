@@ -62,14 +62,7 @@
         <!--        </div>-->
         <van-list v-show="active === 0"> </van-list>
         <!-- contacts -->
-        <van-index-bar v-show="active === 1">
-            <van-index-anchor index="A" />
-            <van-cell
-                v-for="c in contacts"
-                :key="c.address"
-                :title="c.username.slice(0, 40)"
-            />
-        </van-index-bar>
+        <contacts v-show="active === 1" />
         <!-- Preference -->
         <van-list v-show="active === 2">
             <van-cell-group inset title="Preference">
@@ -89,30 +82,21 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
-import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
-import { debug, error, warn } from '@/utils/logger'
-import { fromAddress, stringify } from '@/id'
+import { onBeforeUnmount, ref } from 'vue'
 import { useSessionStore } from '@/store'
 import { notice } from '@/utils/notification'
-import { Contact, ContactModel } from '@/db/contact'
-import { Address } from '@comoc-im/message'
-import randomColor from 'randomcolor'
-import { verifyPassword } from '@/db/user/crypto'
-import { download } from '@/utils/file'
 import { getSignaler, SignalMessage } from '@/network/signaler'
-import { cPrompt } from '@/mobile/components'
+import Contacts from './contacts.vue'
 
 const active = ref(0)
 const store = useSessionStore()
 const { currentUser } = store
-const contacts = ref<Contact[]>([])
-const activeContactID = ref<Address>('')
-const inputText = ref<string>('')
-const msgList = ref<Message[]>([])
-const currentContact = computed(() =>
-    contacts.value.find((c) => c.address === activeContactID.value)
-)
+// const activeContactID = ref<Address>('')
+// const inputText = ref<string>('')
+// const msgList = ref<Message[]>([])
+// const currentContact = computed(() =>
+//     contacts.value.find((c) => c.address === activeContactID.value)
+// )
 
 if (!currentUser) {
     throw new Error('sign in needed')
@@ -120,136 +104,132 @@ if (!currentUser) {
 const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
     notice('info', message.payload)
-    if (activeContactID.value === message._from) {
-        msgList.value.push(message)
-    }
+    // if (activeContactID.value === message._from) {
+    //     msgList.value.push(message)
+    // }
 }
 signaler.addEventListener('message', messageHandler)
 onBeforeUnmount(() => {
     signaler.removeEventListener('message', messageHandler)
 })
 
-refreshContacts(currentUser.address)
+store.refreshContacts(currentUser.address)
 
-async function refreshContacts(owner: Address) {
-    ContactModel.findAll(owner).then((cs) => (contacts.value = cs))
-}
+// function contactColor(): string {
+//     return randomColor({
+//         seed: activeContactID.value,
+//         luminosity: 'dark',
+//     })
+// }
 
-function contactColor(): string {
-    return randomColor({
-        seed: activeContactID.value,
-        luminosity: 'dark',
-    })
-}
+// const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
-const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
+// async function addContact(): Promise<void> {
+//     const address = await cPrompt(
+//         `Paste new contact's address`,
+//         'New contact',
+//         'textarea'
+//     )
+//     if (!address) {
+//         notice('warn', `empty address`)
+//         return
+//     }
+//     const publicKey = await fromAddress(address)
+//     if (!publicKey) {
+//         notice('warn', `Invalid address`)
+//         return
+//     }
+//
+//     if (!currentUser) {
+//         error(`not signed in`)
+//         return
+//     }
+//
+//     const contact = new ContactModel(address as Address, currentUser.address)
+//
+//     await contact.save()
+//     await store.refreshContacts(currentUser.address)
+// }
 
-async function addContact(): Promise<void> {
-    const address = await cPrompt(
-        `Paste new contact's address`,
-        'New contact',
-        'textarea'
-    )
-    if (!address) {
-        notice('warn', `empty address`)
-        return
-    }
-    const publicKey = await fromAddress(address)
-    if (!publicKey) {
-        notice('warn', `Invalid address`)
-        return
-    }
+// async function exportID(): Promise<void> {
+//     if (!currentUser) {
+//         return
+//     }
+//     const _password = await cPrompt(
+//         'Enter password to export COMOC id file',
+//         'Password',
+//         'password'
+//     )
+//     const password = _password ? _password.trim() : ''
+//     if (!password) {
+//         return
+//     }
+//
+//     const passwordCorrect = await verifyPassword(
+//         password,
+//         currentUser.passwordHash
+//     )
+//     if (!passwordCorrect) {
+//         notice('error', 'password wrong')
+//         return
+//     }
+//
+//     download(
+//         await stringify({
+//             publicKey: currentUser.publicKey,
+//             privateKey: currentUser.privateKey,
+//         }),
+//         `${currentUser.username}.id`
+//     )
+// }
 
-    if (!currentUser) {
-        error(`not signed in`)
-        return
-    }
+// async function selectContact(contact: Contact) {
+//     debug('select contact', contact)
+//     activeContactID.value = contact.address
+//
+//     if (!currentUser) {
+//         return
+//     }
+//
+//     MessageModel.getHistoryWith(currentUser.address, contact.address).then(
+//         (messages) => {
+//             msgList.value = messages
+//         }
+//     )
+// }
 
-    const contact = new ContactModel(address as Address, currentUser.address)
-
-    await contact.save()
-    await refreshContacts(currentUser.address)
-}
-
-async function exportID(): Promise<void> {
-    if (!currentUser) {
-        return
-    }
-    const _password = await cPrompt(
-        'Enter password to export COMOC id file',
-        'Password',
-        'password'
-    )
-    const password = _password ? _password.trim() : ''
-    if (!password) {
-        return
-    }
-
-    const passwordCorrect = await verifyPassword(
-        password,
-        currentUser.passwordHash
-    )
-    if (!passwordCorrect) {
-        notice('error', 'password wrong')
-        return
-    }
-
-    download(
-        await stringify({
-            publicKey: currentUser.publicKey,
-            privateKey: currentUser.privateKey,
-        }),
-        `${currentUser.username}.id`
-    )
-}
-
-async function selectContact(contact: Contact) {
-    debug('select contact', contact)
-    activeContactID.value = contact.address
-
-    if (!currentUser) {
-        return
-    }
-
-    MessageModel.getHistoryWith(currentUser.address, contact.address).then(
-        (messages) => {
-            msgList.value = messages
-        }
-    )
-}
-
-async function send() {
-    if (!currentUser) {
-        error(`not signed in`)
-        return
-    }
-
-    if (!currentContact.value) {
-        warn('send without currentContract')
-        return
-    }
-    const message: Message = {
-        id: newMessageId(),
-        payload: inputText.value,
-        timestamp: Date.now(),
-        type: MessageType.Text,
-        author: currentUser.address,
-    }
-    const msg = new MessageModel({
-        from: currentUser.address,
-        to: currentContact.value.address,
-        owner: currentUser.address,
-        message,
-    })
-
-    msgList.value.push(message)
-    inputText.value = ''
-    await signaler.send(currentContact.value.address, 'message', message)
-    await msg.save()
-}
+// async function send() {
+//     if (!currentUser) {
+//         error(`not signed in`)
+//         return
+//     }
+//
+//     if (!currentContact.value) {
+//         warn('send without currentContract')
+//         return
+//     }
+//     const message: Message = {
+//         id: newMessageId(),
+//         payload: inputText.value,
+//         timestamp: Date.now(),
+//         type: MessageType.Text,
+//         author: currentUser.address,
+//     }
+//     const msg = new MessageModel({
+//         from: currentUser.address,
+//         to: currentContact.value.address,
+//         owner: currentUser.address,
+//         message,
+//     })
+//
+//     msgList.value.push(message)
+//     inputText.value = ''
+//     await signaler.send(currentContact.value.address, 'message', message)
+//     await msg.save()
+// }
 </script>
 <style lang="scss" scoped>
-@import '../../styles/base/variable';
+@import '../../../styles/base/variable';
 
 .comoc-web {
     background-color: lightgrey;

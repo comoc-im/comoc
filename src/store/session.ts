@@ -7,6 +7,7 @@ import { Address } from '@comoc-im/message'
 import { parse, stringify, toAddress } from '@/id'
 import { MessageModel } from '@/db/message'
 import { info } from '@/utils/logger'
+import { Contact, ContactModel } from '@/db/contact'
 
 export type SessionUser = {
     username: string
@@ -18,11 +19,13 @@ export type SessionUser = {
 
 type SessionStore = {
     currentUser: SessionUser | null
+    contacts: Contact[]
 }
 
 export const useSessionStore = defineStore('session', {
     state: (): SessionStore => ({
         currentUser: null,
+        contacts: [],
     }),
     getters: {
         isSignedIn(state): boolean {
@@ -70,6 +73,11 @@ export const useSessionStore = defineStore('session', {
             window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
             this.currentUser = null
             await router.replace({ name: RouteName.SignIn })
+        },
+        async refreshContacts(owner: Address) {
+            return ContactModel.findAll(owner).then(
+                (cs) => (this.contacts = cs)
+            )
         },
     },
 })

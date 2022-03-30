@@ -21,7 +21,7 @@
     </van-dialog>
 </template>
 <script lang="ts" setup>
-import { defineProps, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Field, FieldType } from 'vant'
 
 interface Props {

@@ -60,11 +60,11 @@
         <!--                </button>-->
         <!--            </div>-->
         <!--        </div>-->
-        <van-list v-show="active === 0"> </van-list>
+        <van-list class="chats" v-show="active === 0"></van-list>
         <!-- contacts -->
         <contacts v-show="active === 1" />
         <!-- Preference -->
-        <van-list v-show="active === 2">
+        <van-list class="preference" v-show="active === 2">
             <van-cell-group inset title="Preference">
                 <van-cell title="Cell title" value="Content" />
                 <van-cell
@@ -74,7 +74,7 @@
                 />
             </van-cell-group>
         </van-list>
-        <van-tabbar v-model="active">
+        <van-tabbar v-model="active" :fixed="false">
             <van-tabbar-item icon="chat">Message</van-tabbar-item>
             <van-tabbar-item icon="friends">Contact</van-tabbar-item>
             <van-tabbar-item icon="setting">Preference</van-tabbar-item>
@@ -233,11 +233,21 @@ store.refreshContacts(currentUser.address)
 
 .comoc-web {
     background-color: lightgrey;
+    display: flex;
+    flex-direction: column;
     height: 100vh;
     width: 100vw;
 
-    .van-tabbar {
-        position: fixed;
+    .chats {
+        flex: 1;
+    }
+
+    .contacts {
+        flex: 1;
+    }
+
+    .preference {
+        flex: 1;
     }
 }
 </style>

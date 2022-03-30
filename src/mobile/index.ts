@@ -1,10 +1,13 @@
 import { App } from 'vue'
 import {
+    Button,
     Cell,
     CellGroup,
+    Col,
     IndexAnchor,
     IndexBar,
     List,
+    Row,
     Search,
     Tabbar,
     TabbarItem,
@@ -15,6 +18,9 @@ export function init(app: App<Element>) {
     app.use(Tabbar)
     app.use(List)
     app.use(TabbarItem)
+    app.use(Row)
+    app.use(Col)
+    app.use(Button)
     app.use(Cell)
     app.use(CellGroup)
     app.use(IndexBar)

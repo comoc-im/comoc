@@ -11,7 +11,14 @@
         </van-index-bar>
         <van-row>
             <van-col span="6" offset="9">
-                <van-button round block plain icon="plus" type="primary" />
+                <van-button
+                    round
+                    block
+                    plain
+                    icon="plus"
+                    type="primary"
+                    @click="addContact"
+                />
             </van-col>
         </van-row>
     </div>
@@ -19,12 +26,30 @@
 <script lang="ts" setup>
 import { useSessionStore } from '@/store'
 import { ref } from 'vue'
+import { cPrompt } from '@/mobile/components'
+import { Notify, Toast } from 'vant'
 
 const store = useSessionStore()
 const keyword = ref('')
 const contacts = store.contacts.filter((c) => {
     c.username.includes(keyword.value)
 })
+
+async function addContact(): Promise<void> {
+    const address = await cPrompt(
+        `Paste new contact's address`,
+        'New contact',
+        'textarea'
+    )
+    store
+        .addContact(address)
+        .then(() => {
+            Toast.success('OK')
+        })
+        .catch((err) => {
+            Notify({ type: 'warning', message: err })
+        })
+}
 </script>
 <style scoped lang="scss">
 .contacts {

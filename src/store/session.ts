@@ -4,9 +4,9 @@ import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler, getSignaler } from '@/network/signaler'
 import { Address } from '@comoc-im/message'
-import { parse, stringify, toAddress } from '@/id'
+import { fromAddress, parse, stringify, toAddress } from '@/id'
 import { MessageModel } from '@/db/message'
-import { info } from '@/utils/logger'
+import { info, warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
 
 export type SessionUser = {
@@ -74,10 +74,37 @@ export const useSessionStore = defineStore('session', {
             this.currentUser = null
             await router.replace({ name: RouteName.SignIn })
         },
-        async refreshContacts(owner: Address) {
-            return ContactModel.findAll(owner).then(
+        async refreshContacts() {
+            if (!this.currentUser) {
+                warn('refreshContacts not logged in')
+                return
+            }
+            return ContactModel.findAll(this.currentUser.address).then(
                 (cs) => (this.contacts = cs)
             )
+        },
+        async addContact(address: Address): Promise<void> {
+            const _address = address.trim()
+            if (_address === '') {
+                throw `empty address`
+            }
+
+            if (!this.currentUser) {
+                throw `not signed in`
+            }
+
+            if (_address === this.currentUser.address) {
+                throw `You can't add yourself`
+            }
+
+            const publicKey = await fromAddress(_address)
+            if (!publicKey) {
+                throw `Invalid address`
+            }
+
+            const contact = new ContactModel(_address, this.currentUser.address)
+            await contact.save()
+            await this.refreshContacts()
         },
     },
 })

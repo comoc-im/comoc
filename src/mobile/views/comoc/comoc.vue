@@ -3,25 +3,12 @@
         <!--        <div class="panel">-->
         <!--            <div class="profile">-->
         <!--                <button type="button" @click="copyAddress">Copy Address</button>-->
-        <!--                <button type="button" @click="addContact">Add Contact</button>-->
         <!--                <button type="button" @click="exportID">Export My ID</button>-->
         <!--                <button type="button" @click="store.signOut">Sign out</button>-->
         <!--            </div>-->
         <!--            <button type="button" class="preferences-btn" title="Preferences">-->
         <!--                <el-icon><setting /></el-icon>-->
         <!--            </button>-->
-        <!--        </div>-->
-        <!--        <div class="contacts">-->
-        <!--            <div-->
-        <!--                v-for="contact in contacts"-->
-        <!--                :key="contact.address"-->
-        <!--                :title="'chat with ' + contact.username"-->
-        <!--                :class="{ active: activeContactID === contact.address }"-->
-        <!--                class="contact"-->
-        <!--                @click="selectContact(contact)"-->
-        <!--            >-->
-        <!--                {{ contact.username }}-->
-        <!--            </div>-->
         <!--        </div>-->
 
         <!--        <div class="chat">-->
@@ -113,7 +100,7 @@ onBeforeUnmount(() => {
     signaler.removeEventListener('message', messageHandler)
 })
 
-store.refreshContacts(currentUser.address)
+store.refreshContacts()
 
 // function contactColor(): string {
 //     return randomColor({
@@ -123,33 +110,6 @@ store.refreshContacts(currentUser.address)
 // }
 
 // const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
-
-// async function addContact(): Promise<void> {
-//     const address = await cPrompt(
-//         `Paste new contact's address`,
-//         'New contact',
-//         'textarea'
-//     )
-//     if (!address) {
-//         notice('warn', `empty address`)
-//         return
-//     }
-//     const publicKey = await fromAddress(address)
-//     if (!publicKey) {
-//         notice('warn', `Invalid address`)
-//         return
-//     }
-//
-//     if (!currentUser) {
-//         error(`not signed in`)
-//         return
-//     }
-//
-//     const contact = new ContactModel(address as Address, currentUser.address)
-//
-//     await contact.save()
-//     await store.refreshContacts(currentUser.address)
-// }
 
 // async function exportID(): Promise<void> {
 //     if (!currentUser) {

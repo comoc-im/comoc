@@ -66,16 +66,16 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
-import { fromAddress, stringify } from '@/id'
+import { stringify } from '@/id'
 import { useSessionStore } from '@/store'
 import { notice } from '@/utils/notification'
-import { Contact, ContactModel } from '@/db/contact'
+import { Contact } from '@/db/contact'
 import { Address } from '@comoc-im/message'
 import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 import { getSignaler, SignalMessage } from '@/network/signaler'
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
     signaler.removeEventListener('message', messageHandler)
 })
 
-store.refreshContacts(currentUser.address)
+store.refreshContacts()
 
 function contactColor(): string {
     return randomColor({
@@ -117,25 +117,18 @@ async function addContact(): Promise<void> {
         `Paste new contact's address`,
         'New contact'
     )
-    if (!address) {
-        notice('warn', `empty address`)
-        return
-    }
-    const publicKey = await fromAddress(address)
-    if (!publicKey) {
-        notice('warn', `Invalid address`)
-        return
-    }
 
-    if (!currentUser) {
-        error(`not signed in`)
-        return
-    }
-
-    const contact = new ContactModel(address as Address, currentUser.address)
-
-    await contact.save()
-    await store.refreshContacts(currentUser.address)
+    store
+        .addContact(address)
+        .then(() => {
+            ElMessage({
+                message: 'A new friend 🎉',
+                type: 'success',
+            })
+        })
+        .catch((err) => {
+            notice('warn', err)
+        })
 }
 
 async function exportID(): Promise<void> {

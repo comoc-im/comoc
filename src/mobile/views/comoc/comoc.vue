@@ -2,7 +2,6 @@
     <div class="comoc-web">
         <!--        <div class="panel">-->
         <!--            <div class="profile">-->
-        <!--                <button type="button" @click="copyAddress">Copy Address</button>-->
         <!--                <button type="button" @click="exportID">Export My ID</button>-->
         <!--                <button type="button" @click="store.signOut">Sign out</button>-->
         <!--            </div>-->
@@ -51,16 +50,7 @@
         <!-- contacts -->
         <contacts v-show="active === 1" />
         <!-- Preference -->
-        <van-list class="preference" v-show="active === 2">
-            <van-cell-group inset title="Preference">
-                <van-cell title="Cell title" value="Content" />
-                <van-cell
-                    title="Cell title"
-                    value="Content"
-                    label="Description"
-                />
-            </van-cell-group>
-        </van-list>
+        <preference v-show="active === 2" />
         <van-tabbar v-model="active" :fixed="false">
             <van-tabbar-item icon="chat">Message</van-tabbar-item>
             <van-tabbar-item icon="friends">Contact</van-tabbar-item>
@@ -74,6 +64,7 @@ import { useSessionStore } from '@/store'
 import { notice } from '@/utils/notification'
 import { getSignaler, SignalMessage } from '@/network/signaler'
 import Contacts from './contacts.vue'
+import Preference from '@/mobile/views/comoc/preference.vue'
 
 const active = ref(0)
 const store = useSessionStore()
@@ -108,8 +99,6 @@ store.refreshContacts()
 //         luminosity: 'dark',
 //     })
 // }
-
-// const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
 // async function exportID(): Promise<void> {
 //     if (!currentUser) {

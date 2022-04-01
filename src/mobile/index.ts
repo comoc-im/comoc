@@ -4,6 +4,8 @@ import {
     Cell,
     CellGroup,
     Col,
+    Collapse,
+    CollapseItem,
     IndexAnchor,
     IndexBar,
     List,
@@ -20,6 +22,8 @@ export function init(app: App<Element>) {
     app.use(TabbarItem)
     app.use(Row)
     app.use(Col)
+    app.use(Collapse)
+    app.use(CollapseItem)
     app.use(Button)
     app.use(Cell)
     app.use(CellGroup)

@@ -8,6 +8,7 @@ import { fromAddress, parse, stringify, toAddress } from '@/id'
 import { MessageModel } from '@/db/message'
 import { info, warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
+import { copy } from '@/utils/clipboard'
 
 export type SessionUser = {
     username: string
@@ -105,6 +106,12 @@ export const useSessionStore = defineStore('session', {
             const contact = new ContactModel(_address, this.currentUser.address)
             await contact.save()
             await this.refreshContacts()
+        },
+        async copyAddress() {
+            if (!this.currentUser) {
+                throw `not signed in`
+            }
+            return copy(this.currentUser.address)
         },
     },
 })

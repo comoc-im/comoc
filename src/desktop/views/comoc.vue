@@ -2,7 +2,9 @@
     <div class="comoc-web">
         <div class="panel">
             <div class="profile">
-                <button type="button" @click="copyAddress">Copy Address</button>
+                <button type="button" @click="store.copyAddress">
+                    Copy Address
+                </button>
                 <button type="button" @click="addContact">Add Contact</button>
                 <button type="button" @click="exportID">Export My ID</button>
                 <button type="button" @click="store.signOut">Sign out</button>
@@ -109,8 +111,6 @@ function contactColor(): string {
         luminosity: 'dark',
     })
 }
-
-const copyAddress = () => navigator.clipboard.writeText(currentUser.address)
 
 async function addContact(): Promise<void> {
     const { value: address } = await ElMessageBox.prompt(

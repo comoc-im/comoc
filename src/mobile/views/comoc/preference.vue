@@ -1,10 +1,7 @@
 <template>
     <van-list class="preference">
         <van-cell-group inset title="Profile">
-            <van-cell
-                title="Username"
-                :value="store.currentUser.username || '-/'"
-            />
+            <van-cell title="Username" :value="currentUser.username || '-/'" />
             <van-cell
                 title="Cell title"
                 clickable
@@ -15,10 +12,10 @@
                 <van-collapse-item title="My address"
                     ><span class="address" @click="copyAddress">
                         {{
-                            store.currentUser.address
+                            currentUser.address
                                 .toUpperCase()
                                 .match(/.{1,8}/g)
-                                .join('\t')
+                                ?.join('\t')
                         }}
                     </span></van-collapse-item
                 >
@@ -32,6 +29,10 @@ import { ref } from 'vue'
 import { Toast } from 'vant'
 
 const store = useSessionStore()
+const { currentUser } = store
+if (!currentUser) {
+    throw new Error('sign in needed')
+}
 const activeNames = ref([])
 const copyAddress = () =>
     store

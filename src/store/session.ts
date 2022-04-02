@@ -80,9 +80,9 @@ export const useSessionStore = defineStore('session', {
                 warn('refreshContacts not logged in')
                 return
             }
-            return ContactModel.findAll(this.currentUser.address).then(
-                (cs) => (this.contacts = cs)
-            )
+            return ContactModel.findAll(this.currentUser.address).then((cs) => {
+                this.contacts = cs
+            })
         },
         async addContact(address: Address): Promise<void> {
             const _address = address.trim()

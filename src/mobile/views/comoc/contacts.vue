@@ -25,15 +25,15 @@
 </template>
 <script lang="ts" setup>
 import { useSessionStore } from '@/store'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { cPrompt } from '@/mobile/components'
 import { Notify, Toast } from 'vant'
 
 const store = useSessionStore()
 const keyword = ref('')
-const contacts = store.contacts.filter((c) => {
-    c.username.includes(keyword.value)
-})
+const contacts = computed(() =>
+    store.contacts.filter((c) => c.username.includes(keyword.value))
+)
 
 async function addContact(): Promise<void> {
     const address = await cPrompt(

@@ -88,6 +88,30 @@ export class MessageModel implements Message {
         return result
     }
 
+    public static async getRecentChats(userId: string): Promise<Message[]> {
+        const result: Message[] = []
+        const addresses = new Set<Address>()
+        const messages = await collectByIndex<MessageModel>(
+            StoreNames.MESSAGE,
+            'timestamp'
+        )
+        for await (const msg of messages) {
+            if (msg.from !== userId && msg.to !== userId) {
+                continue
+            }
+
+            const targetAddress = msg.from === userId ? msg.to : msg.from
+            if (addresses.has(targetAddress)) {
+                continue
+            }
+
+            addresses.add(targetAddress)
+            result.push(msg)
+        }
+
+        return result
+    }
+
     public static async deleteMany(owner: Address): Promise<number> {
         return deleteMany<MessageModel>(
             StoreNames.MESSAGE,

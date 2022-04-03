@@ -46,7 +46,7 @@
         <!--                </button>-->
         <!--            </div>-->
         <!--        </div>-->
-        <van-list class="chats" v-show="active === 0"></van-list>
+        <chats v-show="active === 0" />
         <!-- contacts -->
         <contacts v-show="active === 1" />
         <!-- Preference -->
@@ -65,6 +65,7 @@ import { notice } from '@/utils/notification'
 import { getSignaler, SignalMessage } from '@/network/signaler'
 import Contacts from './contacts.vue'
 import Preference from '@/mobile/views/comoc/preference.vue'
+import Chats from '@/mobile/views/comoc/chats.vue'
 
 const active = ref(0)
 const store = useSessionStore()

@@ -6,9 +6,11 @@ import {
     Col,
     Collapse,
     CollapseItem,
+    Icon,
     IndexAnchor,
     IndexBar,
     List,
+    NavBar,
     Row,
     Search,
     Tabbar,
@@ -30,4 +32,6 @@ export function init(app: App<Element>) {
     app.use(IndexBar)
     app.use(IndexAnchor)
     app.use(Search)
+    app.use(NavBar)
+    app.use(Icon)
 }

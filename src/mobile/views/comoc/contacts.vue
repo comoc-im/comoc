@@ -7,6 +7,7 @@
                 v-for="c in contacts"
                 :key="c.address"
                 :title="c.username.slice(0, 40)"
+                @click="enterChatWith(c)"
             />
         </van-index-bar>
         <van-row>
@@ -28,6 +29,9 @@ import { useSessionStore } from '@/store'
 import { computed, ref } from 'vue'
 import { cPrompt } from '@/mobile/components'
 import { Notify, Toast } from 'vant'
+import { Contact } from '@/db/contact'
+import { router } from '@/router'
+import { RouteName } from '@/router/routes'
 
 const store = useSessionStore()
 const keyword = ref('')
@@ -49,6 +53,14 @@ async function addContact(): Promise<void> {
         .catch((err) => {
             Notify({ type: 'warning', message: err })
         })
+}
+function enterChatWith(c: Contact): void {
+    router.push({
+        name: RouteName.Chat,
+        params: {
+            address: c.address,
+        },
+    })
 }
 </script>
 <style scoped lang="scss">

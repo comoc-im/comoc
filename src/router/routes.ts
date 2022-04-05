@@ -4,6 +4,7 @@ import { isMobile } from '@/utils/ua'
 export enum RouteName {
     SignIn = 'signIn',
     Comoc = 'comoc',
+    Chat = 'chat',
 }
 export const routes: RouteRecordRaw[] = isMobile()
     ? [
@@ -15,7 +16,12 @@ export const routes: RouteRecordRaw[] = isMobile()
           {
               path: '/comoc',
               name: RouteName.Comoc,
-              component: () => import('@/mobile/views/comoc/comoc.vue'),
+              component: () => import('@/mobile/views/comoc.vue'),
+          },
+          {
+              path: '/chat/:address',
+              name: RouteName.Chat,
+              component: () => import('@/mobile/views/chat.vue'),
           },
           {
               path: '/:pathMatch(.*)*',

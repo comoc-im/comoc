@@ -73,12 +73,11 @@ import { useSessionStore } from '@/store'
 import { notice } from '@/utils/notification'
 import { Contact } from '@/db/contact'
 import { Address } from '@comoc-im/message'
-import randomColor from 'randomcolor'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 import { getSignaler, SignalMessage } from '@/network/signaler'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { toDateTimeStr } from '@/utils/date'
+import { getUserColor } from '@/utils/user'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -107,10 +106,7 @@ onBeforeUnmount(() => {
 store.refreshContacts()
 
 function contactColor(): string {
-    return randomColor({
-        seed: activeContactID.value,
-        luminosity: 'dark',
-    })
+    return getUserColor(activeContactID.value)
 }
 
 async function addContact(): Promise<void> {

@@ -17,7 +17,10 @@
                 v-for="msg in msgList"
                 :key="msg.id"
                 :style="{
-                    color: msg.author === contact.address ? contactColor() : '',
+                    color:
+                        msg.author === contact.address
+                            ? getUserColor(contact.address)
+                            : '',
                 }"
                 :class="[
                     'msg',
@@ -52,6 +55,7 @@ import { onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { error, warn } from '@/utils/logger'
 import { toDateTimeStr } from '@/utils/date'
+import { getUserColor } from '@/utils/user'
 
 const route = useRoute()
 const store = useSessionStore()

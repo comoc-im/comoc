@@ -54,8 +54,8 @@ import { notice } from '@/utils/notification'
 import { onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { error, warn } from '@/utils/logger'
-import { toDateTimeStr } from '@/utils/date'
 import { getUserColor } from '@/utils/user'
+import { toDateTimeStr } from '@/utils/date'
 
 const route = useRoute()
 const store = useSessionStore()
@@ -107,13 +107,10 @@ async function send() {
         timestamp: Date.now(),
         type: MessageType.Text,
         author: currentUser.address,
-    }
-    const msg = new MessageModel({
         from: currentUser.address,
         to: contact.address,
-        owner: currentUser.address,
-        message,
-    })
+    }
+    const msg = new MessageModel(currentUser.address, message)
 
     msgList.value.push(message)
     inputText.value = ''

@@ -14,8 +14,8 @@ type MessageMap = {
 export type SignalMessage<K extends keyof MessageMap> = {
     _t: K
     _s: string
-    _to: Address
-    _from: Address
+    _to: Address // fixme duplicate with message.to
+    _from: Address // fixme duplicate with message.from
 } & MessageMap[K]
 
 type EventMap = {

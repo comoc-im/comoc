@@ -192,13 +192,10 @@ async function send() {
         timestamp: Date.now(),
         type: MessageType.Text,
         author: currentUser.address,
-    }
-    const msg = new MessageModel({
         from: currentUser.address,
         to: currentContact.value.address,
-        owner: currentUser.address,
-        message,
-    })
+    }
+    const msg = new MessageModel(currentUser.address, message)
 
     msgList.value.push(message)
     inputText.value = ''

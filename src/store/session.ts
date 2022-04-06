@@ -52,17 +52,14 @@ export const useSessionStore = defineStore('session', {
             const signaler = getSignaler(user)
             signaler.addEventListener('message', async (message) => {
                 info('receive message', message)
-                await new MessageModel({
+                await new MessageModel(user.address, {
+                    author: message._from,
                     from: message._from,
                     to: message._to,
-                    owner: user.address,
-                    message: {
-                        author: message._from,
-                        id: message.id,
-                        type: message.type,
-                        timestamp: message.timestamp,
-                        payload: message.payload,
-                    },
+                    id: message.id,
+                    type: message.type,
+                    timestamp: message.timestamp,
+                    payload: message.payload,
                 }).save()
             })
         },

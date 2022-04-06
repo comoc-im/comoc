@@ -12,7 +12,9 @@ export interface Message {
     type: MessageType
     payload: string
     timestamp: number
-    author: Address
+    author: Address // Who creates the message
+    from: Address
+    to: Address
 }
 
 export function newMessageId(): string {
@@ -21,7 +23,7 @@ export function newMessageId(): string {
 
 export class MessageModel implements Message {
     id: string
-    owner: Address
+    owner: Address // who owns the message in db
     author: Address
     from: Address
     to: Address
@@ -29,17 +31,10 @@ export class MessageModel implements Message {
     payload: string
     timestamp: number
 
-    constructor({
-        from,
-        to,
-        owner,
-        message: { id, type, payload, timestamp, author },
-    }: {
-        from: Address
-        to: Address
-        owner: Address
-        message: Message
-    }) {
+    constructor(
+        owner: Address,
+        { from, to, id, type, payload, timestamp, author }: Message
+    ) {
         this.owner = owner
         this.type = type
         this.payload = payload

@@ -88,7 +88,8 @@ export class MessageModel implements Message {
         const addresses = new Set<Address>()
         const messages = await collectByIndex<MessageModel>(
             StoreNames.MESSAGE,
-            'timestamp'
+            'timestamp',
+            'prev'
         )
         for await (const msg of messages) {
             if (msg.from !== userId && msg.to !== userId) {

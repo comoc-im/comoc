@@ -67,12 +67,13 @@ export async function getAllByIndex<T>(
 
 export async function collectByIndex<T>(
     storeName: string,
-    indexName: Extract<keyof T, string>
+    indexName: Extract<keyof T, string>,
+    direction: IDBCursorDirection = 'next'
 ): Promise<AsyncIterable<T>> {
     const db = await dbReady
     const trans = db.transaction([storeName], 'readonly')
     const index = trans.objectStore(storeName).index(indexName)
-    const req = index.openCursor()
+    const req = index.openCursor(null, direction)
     return {
         [Symbol.asyncIterator]: () => ({
             next: () =>

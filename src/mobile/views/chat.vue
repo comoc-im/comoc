@@ -12,7 +12,7 @@
             </template>
             -->
         </van-nav-bar>
-        <div class="chat-view">
+        <div class="chat-view" ref="msgContainer">
             <div
                 v-for="msg in msgList"
                 :key="msg.id"
@@ -51,7 +51,7 @@ import { useSessionStore } from '@/store'
 import { useRoute } from 'vue-router'
 import { getSignaler, SignalMessage } from '@/network/signaler'
 import { notice } from '@/utils/notification'
-import { onBeforeUnmount, ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { error, warn } from '@/utils/logger'
 import { getUserColor } from '@/utils/user'
@@ -60,6 +60,7 @@ import { toDateTimeStr } from '@/utils/date'
 const route = useRoute()
 const store = useSessionStore()
 const contact = store.contacts.find((c) => c.address === route.params.address)
+const msgContainer = ref<HTMLDivElement | null>(null)
 const msgList = ref<Message[]>([])
 const inputText = ref<string>('')
 const { currentUser } = store
@@ -72,11 +73,21 @@ if (!contact) {
     // TODO
     throw new Error('contact unknown')
 }
+
+function scrollToNewMessage() {
+    msgContainer.value?.lastElementChild?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center',
+    })
+}
+
 const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
     notice('info', message.payload)
     if (contact.address === message._from) {
         msgList.value.push(message)
+        nextTick(scrollToNewMessage)
     }
 }
 signaler.addEventListener('message', messageHandler)
@@ -116,6 +127,7 @@ async function send() {
     inputText.value = ''
     await signaler.send(contact.address, 'message', message)
     await msg.save()
+    scrollToNewMessage()
 }
 </script>
 <style scoped lang="scss">

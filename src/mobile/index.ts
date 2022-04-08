@@ -17,7 +17,9 @@ import {
     TabbarItem,
 } from 'vant'
 import VConsole from 'vconsole'
+import smoothscroll from 'smoothscroll-polyfill'
 
+smoothscroll.polyfill()
 new VConsole()
 
 export function init(app: App<Element>) {

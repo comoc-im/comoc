@@ -6,6 +6,7 @@ specifiers:
   '@types/lodash-es': ^4.17.6
   '@types/node': ^16.11.12
   '@types/randomcolor': ^0.5.6
+  '@types/smoothscroll-polyfill': ^0.3.1
   '@types/uuid': ^8.3.4
   '@typescript-eslint/eslint-plugin': ^5.16.0
   '@typescript-eslint/parser': ^5.16.0
@@ -27,6 +28,7 @@ specifiers:
   randomcolor: ^0.6.2
   register-service-worker: ^1.7.1
   sass: ^1.49.11
+  smoothscroll-polyfill: ^0.4.4
   typescript: ^4.6.3
   uuid: ^8.3.2
   vant: 3.4.7
@@ -49,6 +51,7 @@ dependencies:
   pinia: 2.0.13_typescript@4.6.3+vue@3.2.31
   randomcolor: 0.6.2
   register-service-worker: 1.7.2
+  smoothscroll-polyfill: 0.4.4
   uuid: 8.3.2
   vant: 3.4.7_vue@3.2.31
   vue: 3.2.31
@@ -58,6 +61,7 @@ devDependencies:
   '@types/lodash-es': 4.17.6
   '@types/node': 16.11.26
   '@types/randomcolor': 0.5.6
+  '@types/smoothscroll-polyfill': 0.3.1
   '@typescript-eslint/eslint-plugin': 5.17.0_689ff565753ecf7c3328c07fad067df5
   '@typescript-eslint/parser': 5.17.0_eslint@8.12.0+typescript@4.6.3
   '@vitejs/plugin-vue': 2.3.1_vite@2.9.1+vue@3.2.31
@@ -1545,6 +1549,10 @@ packages:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
       '@types/node': 16.11.26
+    dev: true
+
+  /@types/smoothscroll-polyfill/0.3.1:
+    resolution: {integrity: sha512-+KkHw4y+EyeCtVXET7woHUhIbfWFCflc0E0mZnSV+ZdjPQeHt/9KPEuT7gSW/kFQ8O3EG30PLO++YhChDt8+Ag==}
     dev: true
 
   /@types/trusted-types/2.0.2:
@@ -5146,6 +5154,10 @@ packages:
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
     dev: true
     optional: true
+
+  /smoothscroll-polyfill/0.4.4:
+    resolution: {integrity: sha512-TK5ZA9U5RqCwMpfoMq/l1mrH0JAR7y7KRvOBx0n2869aLxch+gT9GhN3yUfjiw+d/DiF1mKo14+hd62JyMmoBg==}
+    dev: false
 
   /snake-case/3.0.4:
     resolution: {integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==}

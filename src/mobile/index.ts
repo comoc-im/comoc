@@ -16,6 +16,9 @@ import {
     Tabbar,
     TabbarItem,
 } from 'vant'
+import VConsole from 'vconsole'
+
+new VConsole()
 
 export function init(app: App<Element>) {
     console.debug(app)

@@ -41,6 +41,7 @@
                 v-model="inputText"
                 class="chat-textarea"
                 @keydown.enter.prevent="send"
+                enterkeyhint="send"
             ></textarea>
             <button class="send-btn" type="button" @click="send">Send</button>
         </div>
@@ -200,22 +201,19 @@ async function send() {
 
     .chat-input {
         display: flex;
-        height: 150px;
+        height: 3.6em;
 
         .chat-textarea {
             flex: 1;
             padding: 1em 0.5em;
-            line-height: 1.6em;
+            line-height: 1.5em;
             resize: none;
             border-top: 1px solid $border-color;
             border-left: 1px solid $border-color;
             border-right: none;
             border-bottom: none;
             outline: none;
-
-            &:focus {
-                box-shadow: 0 0 0 2px deepskyblue;
-            }
+            box-sizing: border-box;
         }
 
         .send-btn {

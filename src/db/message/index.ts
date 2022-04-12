@@ -65,22 +65,47 @@ export class MessageModel implements Message {
 
     public static async getHistoryWith(
         userId: string,
-        targetUserId: string
+        targetUserId: string,
+        query?: {
+            startTimestamp?: number
+            endTimestamp?: number
+            maxCount?: number
+        }
     ): Promise<Message[]> {
         const result: Message[] = []
         const messages = await collectByIndex<MessageModel>(
             StoreNames.MESSAGE,
-            'timestamp'
+            'timestamp',
+            'prev'
         )
+
+        let count = 0
         for await (const msg of messages) {
             if (
                 (msg.from === userId && msg.to === targetUserId) ||
                 (msg.from === targetUserId && msg.to === userId)
             ) {
+                if (
+                    query?.startTimestamp &&
+                    msg.timestamp < query.startTimestamp
+                ) {
+                    continue
+                }
+
+                if (query?.endTimestamp && msg.timestamp > query.endTimestamp) {
+                    continue
+                }
+
+                if (query?.maxCount !== undefined && count >= query.maxCount) {
+                    continue
+                }
+
                 result.push(msg)
+                count++
             }
         }
-        return result
+
+        return result.reverse()
     }
 
     public static async getRecentChats(userId: string): Promise<Message[]> {

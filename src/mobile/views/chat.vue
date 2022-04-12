@@ -95,12 +95,12 @@ onBeforeUnmount(() => {
     signaler.removeEventListener('message', messageHandler)
 })
 
-MessageModel.getHistoryWith(currentUser.address, contact.address).then(
-    (messages) => {
-        msgList.value = messages
-        nextTick(scrollToNewMessage)
-    }
-)
+MessageModel.getHistoryWith(currentUser.address, contact.address, {
+    maxCount: 20,
+}).then((messages) => {
+    msgList.value = messages
+    nextTick(scrollToNewMessage)
+})
 
 async function send() {
     if (!currentUser) {

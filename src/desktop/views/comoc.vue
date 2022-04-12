@@ -27,7 +27,7 @@
         </div>
 
         <div class="chat">
-            <div class="chat-view">
+            <div class="chat-view" ref="msgContainer">
                 <div
                     v-for="msg in msgList"
                     :key="msg.id"
@@ -65,7 +65,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
 import { stringify } from '@/id'
@@ -85,6 +85,7 @@ const { currentUser } = store
 const activeContactID = ref<Address>('')
 const inputText = ref<string>('')
 const msgList = ref<Message[]>([])
+const msgContainer = ref<HTMLDivElement | null>(null)
 const currentContact = computed(() =>
     store.contacts.find((c) => c.address === activeContactID.value)
 )
@@ -92,11 +93,21 @@ const currentContact = computed(() =>
 if (!currentUser) {
     throw new Error('sign in needed')
 }
+
+function scrollToNewMessage() {
+    msgContainer.value?.lastElementChild?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center',
+    })
+}
+
 const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
     notice('info', message.payload)
     if (activeContactID.value === message._from) {
         msgList.value.push(message)
+        nextTick(scrollToNewMessage)
     }
 }
 signaler.addEventListener('message', messageHandler)
@@ -172,6 +183,7 @@ async function selectContact(contact: Contact) {
     MessageModel.getHistoryWith(currentUser.address, contact.address).then(
         (messages) => {
             msgList.value = messages
+            nextTick(scrollToNewMessage)
         }
     )
 }
@@ -201,6 +213,7 @@ async function send() {
     inputText.value = ''
     await signaler.send(currentContact.value.address, 'message', message)
     await msg.save()
+    scrollToNewMessage()
 }
 </script>
 <style lang="scss" scoped>

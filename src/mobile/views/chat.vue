@@ -98,6 +98,7 @@ onBeforeUnmount(() => {
 MessageModel.getHistoryWith(currentUser.address, contact.address).then(
     (messages) => {
         msgList.value = messages
+        nextTick(scrollToNewMessage)
     }
 )
 

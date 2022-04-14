@@ -1,0 +1,6 @@
+{
+	"appId": "fun.chummy.comoc",
+	"appName": "comoc",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}

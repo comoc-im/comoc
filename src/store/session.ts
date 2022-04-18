@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { SessionStorageKeys } from '@/constants'
+import { LocalStorageKeys } from '@/constants'
 import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler, getSignaler } from '@/network/signaler'
@@ -37,7 +37,7 @@ export const useSessionStore = defineStore('session', {
         async signIn(user: SessionUser): Promise<void> {
             this.currentUser = user
             window.sessionStorage.setItem(
-                SessionStorageKeys.CurrentUser,
+                LocalStorageKeys.CurrentUser,
                 JSON.stringify({
                     username: user.username,
                     passwordHash: user.passwordHash,
@@ -68,7 +68,7 @@ export const useSessionStore = defineStore('session', {
             if (this.currentUser) {
                 closeSignaler()
             }
-            window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
+            window.sessionStorage.removeItem(LocalStorageKeys.CurrentUser)
             this.currentUser = null
             await router.replace({ name: RouteName.SignIn })
         },
@@ -116,7 +116,7 @@ export const useSessionStore = defineStore('session', {
 // recover sessionStore from sessionStorage
 export async function recoverSessionState(): Promise<void> {
     const sessionStore = useSessionStore()
-    const cache = window.sessionStorage.getItem(SessionStorageKeys.CurrentUser)
+    const cache = window.sessionStorage.getItem(LocalStorageKeys.CurrentUser)
     if (cache) {
         try {
             const {
@@ -138,10 +138,10 @@ export async function recoverSessionState(): Promise<void> {
                     publicKey: idCache.publicKey,
                 })
             } else {
-                window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
+                window.sessionStorage.removeItem(LocalStorageKeys.CurrentUser)
             }
         } catch (err) {
-            window.sessionStorage.removeItem(SessionStorageKeys.CurrentUser)
+            window.sessionStorage.removeItem(LocalStorageKeys.CurrentUser)
         }
     }
 }

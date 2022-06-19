@@ -4,11 +4,12 @@ import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler, getSignaler } from '@/network/signaler'
 import { Address } from '@comoc-im/message'
-import { fromAddress, parse, stringify, toAddress } from '@/id'
+import { stringify } from '@/id'
 import { MessageModel } from '@/db/message'
 import { info, warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
 import { copy } from '@/utils/clipboard'
+import { fromAddress, importId, toAddress } from '@comoc-im/id'
 
 export type SessionUser = {
     username: string
@@ -128,7 +129,7 @@ export async function recoverSessionState(): Promise<void> {
                 passwordHash: string
                 id: string
             } = JSON.parse(cache)
-            const idCache = await parse(id)
+            const idCache = await importId(id)
             if (idCache) {
                 sessionStore.signIn({
                     username,

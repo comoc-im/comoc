@@ -101,15 +101,8 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
 import { debug, error, todo, warn } from '@/utils/logger'
-import {
-    ComocID,
-    createId,
-    importByFile,
-    parse,
-    stringify,
-    unwrapPrivateKey,
-    wrapPrivateKey,
-} from '@/id'
+import { createId, CryptoID, importId } from '@comoc-im/id'
+import { importByFile, unwrapPrivateKey, wrapPrivateKey } from '@/id'
 import { useSessionStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser, User, UserModel } from '@/db/user'
@@ -128,11 +121,11 @@ const username = ref(usernameCache)
 const password = ref('')
 const localUsers = ref<User[]>([])
 const selectedUser = ref<User | null>(null)
-const currentId = ref<ComocID | null>(null)
+const currentId = ref<CryptoID | null>(null)
 
 const cacheStr = window.sessionStorage.getItem(SessionStorageKeys.CurrentId)
 if (cacheStr) {
-    parse(cacheStr.trim()).then((id) => {
+    importId(cacheStr.trim()).then((id) => {
         currentId.value = id
     })
 }
@@ -197,10 +190,7 @@ async function importIdFile(): Promise<void> {
         return
     }
     currentId.value = id
-    window.sessionStorage.setItem(
-        SessionStorageKeys.CurrentId,
-        await stringify(id)
-    )
+    window.sessionStorage.setItem(SessionStorageKeys.CurrentId, id.toString())
 }
 
 async function create() {
@@ -212,11 +202,11 @@ async function create() {
 
     try {
         const id = await createId()
-        download(await stringify(id), `${username.value}.id`)
+        download(id.toString(), `${username.value}.id`)
         currentId.value = id
         window.sessionStorage.setItem(
             SessionStorageKeys.CurrentId,
-            await stringify(id)
+            id.toString()
         )
     } catch (err) {
         error(`create fail, ${err}`)

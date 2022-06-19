@@ -1,7 +1,8 @@
 import { Address } from '@comoc-im/message'
+import { toAddress } from '@comoc-im/id'
 import { StoreNames } from '@/db/store-names'
 import { derivePassword } from '@/db/user/crypto'
-import { toAddress, WrappedPrivateKey } from '@/id'
+import { WrappedPrivateKey } from '@/id'
 import { deleteMany, getAll, put } from '@/db/base'
 
 export interface User {

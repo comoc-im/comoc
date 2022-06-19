@@ -1,38 +1,8 @@
-import { debug, error } from '@/utils/logger'
-import {
-    Address,
-    addressToBytes,
-    bytesToAddress,
-    bytesToHex,
-    hexToBytes,
-} from '@comoc-im/message'
+import { CryptoID, importId } from '@comoc-im/id'
 
 export interface ComocID {
     publicKey: CryptoKey
     privateKey: CryptoKey
-}
-
-interface ComocIdCache {
-    publicKey: JsonWebKey
-    privateKey: JsonWebKey
-}
-
-export async function createId(): Promise<ComocID> {
-    try {
-        const keyPair = await window.crypto.subtle.generateKey(
-            {
-                name: 'ECDSA',
-                namedCurve: 'P-384',
-            },
-            true,
-            ['sign', 'verify']
-        )
-        debug(`generating keypair success,`, keyPair)
-        return keyPair as Required<CryptoKeyPair>
-    } catch (err) {
-        error(`generating keypair fail`, err)
-        throw err
-    }
 }
 
 export async function stringify(id: ComocID): Promise<string> {
@@ -42,73 +12,11 @@ export async function stringify(id: ComocID): Promise<string> {
     })
 }
 
-export async function sign(
-    privateKey: CryptoKey,
-    data: BufferSource
-): Promise<string> {
-    const buffer = await window.crypto.subtle.sign(
-        {
-            name: 'ECDSA',
-            hash: { name: 'SHA-384' },
-        },
-        privateKey,
-        data
-    )
-    return bytesToHex(buffer)
-}
-
-export async function verify(
-    publicKey: CryptoKey,
-    data: BufferSource,
-    signature: string
-): Promise<boolean> {
-    const signatureBuf = await hexToBytes(signature)
-    return window.crypto.subtle.verify(
-        {
-            name: 'ECDSA',
-            hash: { name: 'SHA-384' },
-        },
-        publicKey,
-        signatureBuf,
-        data
-    )
-}
-
-export async function parse(source: string): Promise<ComocID | null> {
-    try {
-        const { privateKey, publicKey } = JSON.parse(source) as ComocIdCache
-        return {
-            privateKey: await window.crypto.subtle.importKey(
-                'jwk',
-                privateKey,
-                {
-                    name: 'ECDSA',
-                    namedCurve: 'P-384',
-                },
-                true,
-                ['sign']
-            ),
-            publicKey: await window.crypto.subtle.importKey(
-                'jwk',
-                publicKey,
-                {
-                    name: 'ECDSA',
-                    namedCurve: 'P-384',
-                },
-                true,
-                ['verify']
-            ),
-        }
-    } catch (err) {
-        return null
-    }
-}
-
-export function importByFile(): Promise<ComocID | null> {
+export function importByFile(): Promise<CryptoID | null> {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = '.id'
-    const result = new Promise<ComocID | null>((resolve) => {
+    const result = new Promise<CryptoID | null>((resolve) => {
         input.onchange = async () => {
             const file = input.files?.[0]
             if (!file) {
@@ -117,7 +25,7 @@ export function importByFile(): Promise<ComocID | null> {
 
             const fr = new FileReader()
             fr.onload = async () => {
-                resolve(parse(fr.result as string))
+                resolve(importId(fr.result as string))
             }
             fr.readAsText(file)
         }
@@ -208,31 +116,4 @@ export async function unwrapPrivateKey(
         true, // extractability of key to unwrap
         ['sign'] // key usages for key to unwrap
     )
-}
-
-export async function toAddress(publicKey: CryptoKey): Promise<Address> {
-    const raw = await window.crypto.subtle.exportKey('raw', publicKey)
-    const bytes = new Uint8Array(raw)
-    const address = bytesToAddress(bytes)
-    debug(address)
-    return address
-}
-
-export async function fromAddress(address: string): Promise<CryptoKey | null> {
-    try {
-        const buffer = addressToBytes(address)
-        return await window.crypto.subtle.importKey(
-            'raw',
-            buffer,
-            {
-                name: 'ECDSA',
-                namedCurve: 'P-384',
-            },
-            true,
-            ['verify']
-        )
-    } catch (err) {
-        error(`import from hex string fail`, err, address)
-        return null
-    }
 }

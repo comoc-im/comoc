@@ -5,8 +5,8 @@ specifiers:
   '@capacitor/cli': ^3.6.0
   '@capacitor/core': ^3.6.0
   '@capacitor/ios': ^3.6.0
-  '@comoc-im/id': ^0.0.5
-  '@comoc-im/message': ^0.1.7
+  '@comoc-im/id': ^0.0.6
+  '@comoc-im/message': ^0.1.8
   '@element-plus/icons-vue': ^2.0.4
   '@types/lodash-es': ^4.17.6
   '@types/node': ^16.11.41
@@ -51,7 +51,7 @@ dependencies:
   '@capacitor/android': 3.6.0_@capacitor+core@3.6.0
   '@capacitor/core': 3.6.0
   '@capacitor/ios': 3.6.0_@capacitor+core@3.6.0
-  '@comoc-im/message': 0.1.7
+  '@comoc-im/message': 0.1.8
   '@element-plus/icons-vue': 2.0.4_vue@3.2.37
   '@types/uuid': 8.3.4
   element-plus: 2.2.6_vue@3.2.37
@@ -67,7 +67,7 @@ dependencies:
 
 devDependencies:
   '@capacitor/cli': 3.6.0
-  '@comoc-im/id': 0.0.5
+  '@comoc-im/id': 0.0.6
   '@types/lodash-es': 4.17.6
   '@types/node': 16.11.41
   '@types/randomcolor': 0.5.6
@@ -1296,12 +1296,12 @@ packages:
       '@capacitor/core': 3.6.0
     dev: false
 
-  /@comoc-im/id/0.0.5:
-    resolution: {integrity: sha512-prGCOdwgIoNywGAJvk4H1vFRumLcPEFRJtTpvZdoy+CgE7G916muISo3gcUCldPmx1uuWRZ/DjMke7fVeV24dw==}
+  /@comoc-im/id/0.0.6:
+    resolution: {integrity: sha512-Mv4el/Ek2RXINnD6aipVJUf+gicm2MDAwbWtY1cbbSvpeTK1+n7m5VKzWswLGtP7rLapkya2y0DcdXSdeJrvFg==}
     dev: true
 
-  /@comoc-im/message/0.1.7:
-    resolution: {integrity: sha512-vHniJ+FyaYpZookm37EyFLg+8HyZAHIYXdIhB2iLk8bCc6kkE1Ar3odI3yPZePG1oodmnbbBxUDO4Rj0zz9w3A==}
+  /@comoc-im/message/0.1.8:
+    resolution: {integrity: sha512-axgZsFE4uVWPyaFeepjyHcz0slQcJ3aS0k8kaDs+uVXdgFA40HUyYZWq//9uOjc0H3DMshdRVvyKtuKg3MuL2Q==}
     dev: false
 
   /@ctrl/tinycolor/3.4.1:

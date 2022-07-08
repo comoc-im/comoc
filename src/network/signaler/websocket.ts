@@ -1,6 +1,7 @@
-import { Address, SignIn } from '@comoc-im/message'
+import { SignIn } from '@comoc-im/message'
 import { signalerServerWebSocketUrl } from '@/config'
 import { debug, error, warn } from '@/utils/logger'
+import { Address } from '@comoc-im/id'
 
 export function createWebSocket(address: Address) {
     return new Promise<WebSocket>((resolve) => {

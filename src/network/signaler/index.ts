@@ -22,7 +22,7 @@ type EventMap = {
     message: SignalMessage<'message'>
 }
 
-class Signaler extends EventHub<EventMap> {
+export class Signaler extends EventHub<EventMap> {
     private readonly user: SessionUser
     private readonly webSocketReady: Promise<WebSocket>
 

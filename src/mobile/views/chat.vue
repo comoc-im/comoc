@@ -50,13 +50,14 @@
 <script lang="ts" setup>
 import { useSessionStore } from '@/store'
 import { useRoute } from 'vue-router'
-import { getSignaler, SignalMessage } from '@/network/signaler'
+import { SignalMessage } from '@/network/signaler'
 import { notice } from '@/utils/notification'
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { error, warn } from '@/utils/logger'
 import { getUserColor } from '@/utils/user'
 import { toDateTimeStr } from '@/utils/date'
+import { getP2PConnection } from '@/network/p2p'
 
 const route = useRoute()
 const store = useSessionStore()
@@ -83,7 +84,6 @@ function scrollToNewMessage() {
     })
 }
 
-const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
     notice('info', message.payload)
     if (contact.address === message._from) {
@@ -91,10 +91,11 @@ const messageHandler = (message: SignalMessage<'message'>) => {
         nextTick(scrollToNewMessage)
     }
 }
-signaler.addEventListener('message', messageHandler)
+const p2pCon = getP2PConnection(currentUser, contact.address)
 onBeforeUnmount(() => {
-    signaler.removeEventListener('message', messageHandler)
+    p2pCon.removeEventListener('message', messageHandler)
 })
+p2pCon.addEventListener('message', messageHandler)
 
 MessageModel.getHistoryWith(currentUser.address, contact.address, {
     maxCount: 20,
@@ -124,10 +125,11 @@ async function send() {
         to: contact.address,
     }
     const msg = new MessageModel(currentUser.address, message)
+    const p2pCon = getP2PConnection(currentUser, contact.address)
 
     msgList.value.push(message)
     inputText.value = ''
-    await signaler.send(contact.address, 'message', message)
+    await p2pCon.send(contact.address, 'message', message)
     await msg.save()
     scrollToNewMessage()
 }

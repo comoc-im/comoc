@@ -10,7 +10,9 @@
                 <button type="button" @click="store.signOut">Sign out</button>
             </div>
             <button type="button" class="preferences-btn" title="Preferences">
-                <el-icon><setting /></el-icon>
+                <el-icon>
+                    <setting />
+                </el-icon>
             </button>
         </div>
         <div class="contacts">
@@ -75,10 +77,11 @@ import { Contact } from '@/db/contact'
 import { Address } from '@comoc-im/id'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
-import { getSignaler, SignalMessage } from '@/network/signaler'
+import { SignalMessage } from '@/network/signaler'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserColor } from '@/utils/user'
 import { toDateTimeStr } from '@/utils/date'
+import { getP2PConnection, P2PConnection } from '@/network/p2p'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -102,7 +105,6 @@ function scrollToNewMessage() {
     })
 }
 
-const signaler = getSignaler(currentUser)
 const messageHandler = (message: SignalMessage<'message'>) => {
     notice('info', message.payload)
     if (activeContactID.value === message._from) {
@@ -110,10 +112,6 @@ const messageHandler = (message: SignalMessage<'message'>) => {
         nextTick(scrollToNewMessage)
     }
 }
-signaler.addEventListener('message', messageHandler)
-onBeforeUnmount(() => {
-    signaler.removeEventListener('message', messageHandler)
-})
 
 store.refreshContacts()
 
@@ -172,6 +170,10 @@ async function exportID(): Promise<void> {
     )
 }
 
+let p2pCon: P2PConnection | null = null
+onBeforeUnmount(() => {
+    p2pCon?.removeEventListener('message', messageHandler)
+})
 async function selectContact(contact: Contact) {
     debug('select contact', contact)
     activeContactID.value = contact.address
@@ -186,6 +188,10 @@ async function selectContact(contact: Contact) {
         msgList.value = messages
         nextTick(scrollToNewMessage)
     })
+
+    p2pCon?.removeEventListener('message', messageHandler)
+    p2pCon = getP2PConnection(currentUser, contact.address)
+    p2pCon.addEventListener('message', messageHandler)
 }
 
 async function send() {
@@ -208,10 +214,11 @@ async function send() {
         to: currentContact.value.address,
     }
     const msg = new MessageModel(currentUser.address, message)
+    const p2pCon = getP2PConnection(currentUser, currentContact.value.address)
 
     msgList.value.push(message)
     inputText.value = ''
-    await signaler.send(currentContact.value.address, 'message', message)
+    await p2pCon.send(currentContact.value.address, 'message', message)
     await msg.save()
     scrollToNewMessage()
 }

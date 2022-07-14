@@ -2,3 +2,4 @@ index.html
 build/
 dist/
 *.scss
+components.d.ts

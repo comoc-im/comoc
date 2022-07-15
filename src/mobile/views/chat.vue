@@ -86,7 +86,7 @@ function scrollToNewMessage() {
 
 const messageHandler = (message: SignalMessage<'message'>) => {
     notice('info', message.payload)
-    if (contact.address === message._from) {
+    if (contact.address === message.from) {
         msgList.value.push(message)
         nextTick(scrollToNewMessage)
     }

@@ -3,3 +3,4 @@ build/
 dist/
 *.scss
 components.d.ts
+node_modules/

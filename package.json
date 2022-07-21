@@ -5,7 +5,7 @@
   "main": "main.js",
   "repository": "git@github.com:comoc-im/comoc.git",
   "author": "Naeemo <naeemo@qq.com>",
-  "license": "MIT",
+  "license": "Apache License 2.0",
   "homepage": "https://github.com/comoc-im/comoc",
   "bugs": "https://github.com/comoc-im/comoc/issues",
   "private": false,

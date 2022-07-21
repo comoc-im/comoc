@@ -77,11 +77,10 @@ import { Contact } from '@/db/contact'
 import { Address } from '@comoc-im/id'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
-import { SignalMessage } from '@/network/signaler'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserColor } from '@/utils/user'
 import { toDateTimeStr } from '@/utils/date'
-import { getP2PConnection, P2PConnection } from '@/network/p2p'
+import { P2pConnection, p2pNetwork } from '@/network/p2p'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -105,7 +104,8 @@ function scrollToNewMessage() {
     })
 }
 
-const messageHandler = (message: SignalMessage<'message'>) => {
+const messageHandler = (data: string) => {
+    const message = JSON.parse(data)
     notice('info', message.payload)
     if (activeContactID.value === message.from) {
         msgList.value.push(message)
@@ -170,12 +170,15 @@ async function exportID(): Promise<void> {
     )
 }
 
-let p2pCon: P2PConnection | null = null
+let p2pCon: P2pConnection | null = null
 onBeforeUnmount(() => {
     p2pCon?.removeEventListener('message', messageHandler)
 })
 async function selectContact(contact: Contact) {
     debug('select contact', contact)
+    if (activeContactID.value === contact.address) {
+        return
+    }
     activeContactID.value = contact.address
 
     if (!currentUser) {
@@ -190,7 +193,7 @@ async function selectContact(contact: Contact) {
     })
 
     p2pCon?.removeEventListener('message', messageHandler)
-    p2pCon = getP2PConnection(currentUser, contact.address)
+    p2pCon = p2pNetwork.getP2PConnection(currentUser, contact.address)
     p2pCon.addEventListener('message', messageHandler)
 }
 
@@ -214,11 +217,14 @@ async function send() {
         to: currentContact.value.address,
     }
     const msg = new MessageModel(currentUser.address, message)
-    const p2pCon = getP2PConnection(currentUser, currentContact.value.address)
+    const p2pCon = p2pNetwork.getP2PConnection(
+        currentUser,
+        currentContact.value.address
+    )
 
     msgList.value.push(message)
     inputText.value = ''
-    await p2pCon.send(currentContact.value.address, 'message', message)
+    await p2pCon.send(JSON.stringify(message))
     await msg.save()
     scrollToNewMessage()
 }

@@ -2,13 +2,13 @@ import { defineStore } from 'pinia'
 import { LocalStorageKeys } from '@/constants'
 import { router } from '@/router'
 import { RouteName } from '@/router/routes'
-import { closeSignaler, getSignaler } from '@/network/signaler'
+import { closeSignaler } from '@/network/signaler'
 import { Address, fromAddress, importId, toAddress } from '@comoc-im/id'
 import { stringify } from '@/id'
-import { MessageModel } from '@/db/message'
-import { info, warn } from '@/utils/logger'
+import { warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
 import { copy } from '@/utils/clipboard'
+import { p2pNetwork } from '@/network/p2p'
 
 export type SessionUser = {
     username: string
@@ -47,21 +47,8 @@ export const useSessionStore = defineStore('session', {
                     }),
                 })
             )
+            p2pNetwork.init(user)
             await router.replace({ name: RouteName.Comoc })
-            // listen for new messages
-            const signaler = getSignaler(user)
-            signaler.addEventListener('message', async (message) => {
-                info('receive message', message)
-                await new MessageModel(user.address, {
-                    author: message.from,
-                    from: message.from,
-                    to: message.to,
-                    id: message.id,
-                    type: message.type,
-                    timestamp: message.timestamp,
-                    payload: message.payload,
-                }).save()
-            })
         },
         async signOut(): Promise<void> {
             // signaler dispose
@@ -130,7 +117,7 @@ export async function recoverSessionState(): Promise<void> {
             } = JSON.parse(cache)
             const idCache = await importId(id)
             if (idCache) {
-                sessionStore.signIn({
+                await sessionStore.signIn({
                     username,
                     address: await toAddress(idCache.publicKey),
                     passwordHash,

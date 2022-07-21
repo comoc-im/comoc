@@ -1,23 +1,14 @@
 import { Signal } from '@comoc-im/message'
 import { error, info, todo } from '@/utils/logger'
 import { EventHub } from '@/network/signaler/eventHub'
-import { Message } from '@/db/message'
 import { createWebSocket } from '@/network/signaler/websocket'
 import { Address, fromAddress, sign, verify } from '@comoc-im/id'
 import { bufferToJson, jsonToBuffer } from '@/utils/buffer'
 import { SessionUser } from '@/store/session'
 
-type MessageMap = {
-    message: Message
-}
-
-export type SignalMessage<K extends keyof MessageMap> = {
-    _t: K
-    _s: string
-} & MessageMap[K]
-
 type EventMap = {
-    message: SignalMessage<'message'>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    webRTCSignal: { payload: unknown; from: Address; to: Address }
 }
 
 export class Signaler extends EventHub<EventMap> {
@@ -31,9 +22,7 @@ export class Signaler extends EventHub<EventMap> {
         this.listenMessage()
     }
 
-    private async fromSignal<K extends keyof MessageMap>(
-        s: Signal
-    ): Promise<SignalMessage<K>> {
+    private async fromSignal(s: Signal) {
         const result = JSON.parse(await bufferToJson(s.payload))
         const source = Object.assign({}, result)
         delete source._s
@@ -57,16 +46,12 @@ export class Signaler extends EventHub<EventMap> {
             todo('signal sender public key fail')
         }
 
-        return result
+        return { payload: source, to: s.to, from: s.from }
     }
 
-    public async send<K extends keyof EventMap>(
-        to: Address,
-        type: K,
-        data: MessageMap[K]
-    ): Promise<void> {
+    public async send(to: Address, data: unknown): Promise<void> {
         const webSocket = await this.webSocketReady
-        const s = await this.toSignal(to, type, data)
+        const s = await this.toSignal(to, data)
         // debug('websocket sending', data)
 
         webSocket.send(s.encode())
@@ -83,37 +68,22 @@ export class Signaler extends EventHub<EventMap> {
             try {
                 const signal = Signal.decode(new Uint8Array(msg.data))
                 const sm = await this.fromSignal(signal)
-                switch (sm._t) {
-                    case 'message':
-                        this.dispatchEvent('message', sm)
-                }
+                this.dispatchEvent('webRTCSignal', sm)
             } catch (err) {
-                error(`unrecognized websocket message`, msg.data)
+                error(`unrecognized websocket message`, err, msg.data)
             }
         }
 
         webSocket.addEventListener('message', listener)
     }
 
-    private async toSignal<K extends keyof EventMap>(
-        to: Address,
-        type: K,
-        data: MessageMap[K]
-    ): Promise<Signal> {
-        const _sm = Object.assign(
-            {
-                _from: this.user.address,
-                _to: to,
-                _t: type,
-            },
-            data
-        )
+    private async toSignal(to: Address, data: unknown): Promise<Signal> {
         const signature = await sign(
             this.user.privateKey,
-            await jsonToBuffer(JSON.stringify(_sm))
+            await jsonToBuffer(JSON.stringify(data))
         )
 
-        const sm: SignalMessage<K> = Object.assign({ _s: signature }, _sm)
+        const sm = Object.assign({ _s: signature }, data)
         const str = JSON.stringify(sm)
         const buffer = await jsonToBuffer(str)
         return new Signal(this.user.address, to, new Uint8Array(buffer))

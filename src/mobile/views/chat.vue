@@ -50,14 +50,13 @@
 <script lang="ts" setup>
 import { useSessionStore } from '@/store'
 import { useRoute } from 'vue-router'
-import { SignalMessage } from '@/network/signaler'
 import { notice } from '@/utils/notification'
 import { nextTick, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { error, warn } from '@/utils/logger'
 import { getUserColor } from '@/utils/user'
 import { toDateTimeStr } from '@/utils/date'
-import { getP2PConnection } from '@/network/p2p'
+import { p2pNetwork } from '@/network/p2p'
 
 const route = useRoute()
 const store = useSessionStore()
@@ -84,14 +83,15 @@ function scrollToNewMessage() {
     })
 }
 
-const messageHandler = (message: SignalMessage<'message'>) => {
+const messageHandler = (data: string) => {
+    const message = JSON.parse(data)
     notice('info', message.payload)
     if (contact.address === message.from) {
         msgList.value.push(message)
         nextTick(scrollToNewMessage)
     }
 }
-const p2pCon = getP2PConnection(currentUser, contact.address)
+const p2pCon = p2pNetwork.getP2PConnection(currentUser, contact.address)
 onBeforeUnmount(() => {
     p2pCon.removeEventListener('message', messageHandler)
 })
@@ -125,11 +125,11 @@ async function send() {
         to: contact.address,
     }
     const msg = new MessageModel(currentUser.address, message)
-    const p2pCon = getP2PConnection(currentUser, contact.address)
+    const p2pCon = p2pNetwork.getP2PConnection(currentUser, contact.address)
 
     msgList.value.push(message)
     inputText.value = ''
-    await p2pCon.send(contact.address, 'message', message)
+    await p2pCon.send(JSON.stringify(message))
     await msg.save()
     scrollToNewMessage()
 }

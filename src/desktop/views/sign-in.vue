@@ -94,7 +94,7 @@
             Comoc IM and related services, software are still in early
             development. Use at your own risk.
             <br />
-            Copyright © 2021-2022 Naeemo
+            Copyright © 2021-{{ new Date().getFullYear() }} Naeemo
         </p>
     </div>
 </template>

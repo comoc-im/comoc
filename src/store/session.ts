@@ -47,7 +47,7 @@ export const useSessionStore = defineStore('session', {
                     }),
                 })
             )
-            p2pNetwork.init(user)
+            p2pNetwork.join(user)
             await router.replace({ name: RouteName.Comoc })
         },
         async signOut(): Promise<void> {
@@ -55,6 +55,7 @@ export const useSessionStore = defineStore('session', {
             if (this.currentUser) {
                 closeSignaler()
             }
+            p2pNetwork.leave()
             window.sessionStorage.removeItem(LocalStorageKeys.CurrentUser)
             this.currentUser = null
             await router.replace({ name: RouteName.SignIn })

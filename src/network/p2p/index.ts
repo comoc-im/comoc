@@ -11,7 +11,7 @@ type NetworkEventMap = { message: Message }
 class P2pNetwork extends EventHub<NetworkEventMap> {
     public readonly connectionRecord = new Map<Address, P2pConnection>()
 
-    public init(currentUser: SessionUser) {
+    public join(currentUser: SessionUser) {
         // listen for new messages
         this.addEventListener('message', async (message) => {
             await new MessageModel(currentUser.address, {
@@ -27,6 +27,14 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
 
         // listen for signal
         this.receiveP2pSignal(currentUser)
+    }
+
+    public leave() {
+        this.clearEventListeners()
+        this.connectionRecord.forEach((p2pConn) => {
+            p2pConn.destroy()
+        })
+        this.connectionRecord.clear()
     }
 
     private receiveP2pSignal(currentUser: SessionUser) {
@@ -52,7 +60,7 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
         currentUser: SessionUser,
         remoteUserAddress: Address
     ): P2pConnection {
-        const p2pConn = this.dataChannelMap.get(remoteUserAddress)
+        const p2pConn = this.connectionRecord.get(remoteUserAddress)
         if (p2pConn) {
             return p2pConn
         }
@@ -63,7 +71,7 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
             info('receive message from p2p connection', message)
             this.dispatchEvent('message', message)
         })
-        this.dataChannelMap.set(remoteUserAddress, newConn)
+        this.connectionRecord.set(remoteUserAddress, newConn)
         return newConn
     }
 }

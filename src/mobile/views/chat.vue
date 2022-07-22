@@ -83,19 +83,17 @@ function scrollToNewMessage() {
     })
 }
 
-const messageHandler = (data: string) => {
-    const message = JSON.parse(data)
+const messageHandler = (message: Message) => {
     notice('info', message.payload)
     if (contact.address === message.from) {
         msgList.value.push(message)
         nextTick(scrollToNewMessage)
     }
 }
-const p2pCon = p2pNetwork.getP2PConnection(currentUser, contact.address)
 onBeforeUnmount(() => {
-    p2pCon.removeEventListener('message', messageHandler)
+    p2pNetwork.removeEventListener('message', messageHandler)
 })
-p2pCon.addEventListener('message', messageHandler)
+p2pNetwork.addEventListener('message', messageHandler)
 
 MessageModel.getHistoryWith(currentUser.address, contact.address, {
     maxCount: 20,

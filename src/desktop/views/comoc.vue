@@ -104,8 +104,7 @@ function scrollToNewMessage() {
     })
 }
 
-const messageHandler = (data: string) => {
-    const message = JSON.parse(data)
+const messageHandler = (message: Message) => {
     notice('info', message.payload)
     if (activeContactID.value === message.from) {
         msgList.value.push(message)
@@ -170,10 +169,11 @@ async function exportID(): Promise<void> {
     )
 }
 
-let p2pCon: P2pConnection | null = null
+p2pNetwork.addEventListener('message', messageHandler)
 onBeforeUnmount(() => {
-    p2pCon?.removeEventListener('message', messageHandler)
+    p2pNetwork.removeEventListener('message', messageHandler)
 })
+
 async function selectContact(contact: Contact) {
     debug('select contact', contact)
     if (activeContactID.value === contact.address) {
@@ -191,10 +191,6 @@ async function selectContact(contact: Contact) {
         msgList.value = messages
         nextTick(scrollToNewMessage)
     })
-
-    p2pCon?.removeEventListener('message', messageHandler)
-    p2pCon = p2pNetwork.getP2PConnection(currentUser, contact.address)
-    p2pCon.addEventListener('message', messageHandler)
 }
 
 async function send() {

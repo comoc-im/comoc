@@ -80,7 +80,7 @@ import { download } from '@/utils/file'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getUserColor } from '@/utils/user'
 import { toDateTimeStr } from '@/utils/date'
-import { P2pConnection, p2pNetwork } from '@/network/p2p'
+import { p2pNetwork } from '@/network/p2p'
 
 const store = useSessionStore()
 const { currentUser } = store
@@ -213,14 +213,10 @@ async function send() {
         to: currentContact.value.address,
     }
     const msg = new MessageModel(currentUser.address, message)
-    const p2pCon = p2pNetwork.getP2PConnection(
-        currentUser,
-        currentContact.value.address
-    )
 
     msgList.value.push(message)
     inputText.value = ''
-    await p2pCon.send(JSON.stringify(message))
+    p2pNetwork.send(currentContact.value.address, message)
     await msg.save()
     scrollToNewMessage()
 }

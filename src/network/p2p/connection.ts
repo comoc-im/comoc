@@ -163,7 +163,7 @@ export class P2pConnection extends EventHub<EventMap> {
         }
     }
 
-    public async send(data: string): Promise<void> {
+    public send(data: string) {
         this.dc?.send(data)
     }
 

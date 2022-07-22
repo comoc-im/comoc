@@ -123,11 +123,10 @@ async function send() {
         to: contact.address,
     }
     const msg = new MessageModel(currentUser.address, message)
-    const p2pCon = p2pNetwork.getP2PConnection(currentUser, contact.address)
 
     msgList.value.push(message)
     inputText.value = ''
-    await p2pCon.send(JSON.stringify(message))
+    p2pNetwork.send(contact.address, message)
     await msg.save()
     scrollToNewMessage()
 }

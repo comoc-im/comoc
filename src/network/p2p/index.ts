@@ -1,8 +1,8 @@
-import { SessionUser } from '@/store/session'
+import { SessionUser, useSessionStore } from '@/store/session'
 import { Address } from '@comoc-im/id'
 import { getSignaler } from '@/network/signaler'
 import { EventHub } from '@/network/signaler/eventHub'
-import { info } from '@/utils/logger'
+import { error, info } from '@/utils/logger'
 import { Message, MessageModel } from '@/db/message'
 import { P2pConnection } from '@/network/p2p/connection'
 
@@ -26,18 +26,6 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
         })
 
         // listen for signal
-        this.receiveP2pSignal(currentUser)
-    }
-
-    public leave() {
-        this.clearEventListeners()
-        this.connectionRecord.forEach((p2pConn) => {
-            p2pConn.destroy()
-        })
-        this.connectionRecord.clear()
-    }
-
-    private receiveP2pSignal(currentUser: SessionUser) {
         const signaler = getSignaler(currentUser)
         signaler.addEventListener('webRTCSignal', async ({ from, payload }) => {
             const { description, candidate } = payload as {
@@ -56,7 +44,25 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
         })
     }
 
-    public getP2PConnection(
+    public leave() {
+        this.clearEventListeners()
+        this.connectionRecord.forEach((p2pConn) => {
+            p2pConn.destroy()
+        })
+        this.connectionRecord.clear()
+    }
+
+    public send(to: Address, message: Message) {
+        const { currentUser } = useSessionStore()
+        if (!currentUser) {
+            error('send skipped, no signed in user', currentUser)
+            return
+        }
+        const p2pConn = this.getP2PConnection(currentUser, to)
+        p2pConn.send(JSON.stringify(message))
+    }
+
+    private getP2PConnection(
         currentUser: SessionUser,
         remoteUserAddress: Address
     ): P2pConnection {
@@ -77,5 +83,3 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
 }
 
 export const p2pNetwork = new P2pNetwork()
-
-export type { P2pConnection }

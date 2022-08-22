@@ -1,6 +1,7 @@
 {
-  "name": "comoc",
+  "name": "@comoc/monorepo",
   "version": "0.1.0",
+  "private": true,
   "description": "Comoc IM",
   "main": "main.js",
   "repository": "git@github.com:comoc-im/comoc.git",
@@ -8,13 +9,11 @@
   "license": "Apache License 2.0",
   "homepage": "https://github.com/comoc-im/comoc",
   "bugs": "https://github.com/comoc-im/comoc/issues",
-  "private": false,
   "scripts": {
-    "dev": "vite",
-    "dev-preview": "export NODE_ENV=development && electron .",
-    "build-web": "vue-tsc && vite build",
-    "build": "vue-tsc && vite build && electron-builder -mwl",
-    "postinstall": "electron-builder install-app-deps"
+    "dev": "pnpm -F @comoc/app dev",
+    "dev-preview": "pnpm -F @comoc/app dev-preview",
+    "build-web": "pnpm -F @comoc/app build-web",
+    "build": "pnpm -F @comoc/app build"
   },
   "build": {
     "directories": {
@@ -75,8 +74,6 @@
     "@vitejs/plugin-vue": "^3.0.1",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/eslint-config-typescript": "^11.0.0",
-    "electron": "^19.0.4",
-    "electron-builder": "^23.0.3",
     "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",

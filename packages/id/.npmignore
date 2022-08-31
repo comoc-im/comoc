@@ -1,0 +1,12 @@
+node_modules
+.eslintignore
+.eslintrc
+.gitignore
+.prettierignore
+.prettieric
+pnpm-lock.yaml
+tsconfig.json
+vite.config.ts
+.idea/
+.vscode/
+.husky/

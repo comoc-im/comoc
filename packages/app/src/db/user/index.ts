@@ -1,4 +1,4 @@
-import { Address, toAddress } from '@comoc-im/id'
+import { Address, toAddress } from '@comoc/id'
 import { StoreNames } from '@/db/store-names'
 import { derivePassword } from '@/db/user/crypto'
 import { WrappedPrivateKey } from '@/id'

@@ -1,4 +1,4 @@
-import { Address } from '@comoc-im/id'
+import { Address } from '@comoc/id'
 import { v4 } from 'uuid'
 import { StoreNames } from '@/db/store-names'
 import { collectByIndex, deleteMany, put } from '@/db/base'

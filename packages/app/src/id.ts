@@ -1,4 +1,4 @@
-import { CryptoID, importId } from '@comoc-im/id'
+import { CryptoID, importId } from '@comoc/id'
 
 export interface ComocID {
     publicKey: CryptoKey

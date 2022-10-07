@@ -1,5 +1,5 @@
 {
-  "name": "@comoc-im/id",
+  "name": "@comoc/id",
   "version": "0.0.6",
   "description": "Comoc-IM ID",
   "main": "./dist/id.umd.js",

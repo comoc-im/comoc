@@ -1,8 +1,8 @@
 import { Signal } from '@comoc-im/message'
 import { error, info, todo } from '@/utils/logger'
-import { EventHub } from '@/network/signaler/eventHub'
-import { createWebSocket } from '@/network/signaler/websocket'
-import { Address, fromAddress, sign, verify } from '@comoc-im/id'
+import { EventHub } from './eventHub'
+import { createWebSocket } from './websocket'
+import { Address, fromAddress, sign, verify } from '@comoc/id'
 import { bufferToJson, jsonToBuffer } from '@/utils/buffer'
 import { SessionUser } from '@/store/session'
 

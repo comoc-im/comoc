@@ -9,6 +9,7 @@ import { warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
 import { copy } from '@/utils/clipboard'
 import { p2pNetwork } from '@/network/p2p'
+import { MessageModel } from '@/db/message'
 
 export type SessionUser = {
     username: string
@@ -48,6 +49,18 @@ export const useSessionStore = defineStore('session', {
                 })
             )
             p2pNetwork.join(user)
+            // listen for new messages
+            p2pNetwork.addEventListener('message', (message) => {
+                new MessageModel(user.address, {
+                    author: message.from,
+                    from: message.from,
+                    to: message.to,
+                    id: message.id,
+                    type: message.type,
+                    timestamp: message.timestamp,
+                    payload: message.payload,
+                }).save()
+            })
             await router.replace({ name: RouteName.Comoc })
         },
         async signOut(): Promise<void> {

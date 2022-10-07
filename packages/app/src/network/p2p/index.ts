@@ -3,7 +3,7 @@ import { Address } from '@comoc/id'
 import { getSignaler } from '@/network/signaler'
 import { EventHub } from '@/network/signaler/eventHub'
 import { error, info } from '@/utils/logger'
-import { Message, MessageModel } from '@/db/message'
+import type { Message } from '@/db/message'
 import { P2pConnection } from '@/network/p2p/connection'
 
 type NetworkEventMap = { message: Message }
@@ -12,19 +12,6 @@ class P2pNetwork extends EventHub<NetworkEventMap> {
     public readonly connectionRecord = new Map<Address, P2pConnection>()
 
     public join(currentUser: SessionUser) {
-        // listen for new messages
-        this.addEventListener('message', async (message) => {
-            await new MessageModel(currentUser.address, {
-                author: message.from,
-                from: message.from,
-                to: message.to,
-                id: message.id,
-                type: message.type,
-                timestamp: message.timestamp,
-                payload: message.payload,
-            }).save()
-        })
-
         // listen for signal
         const signaler = getSignaler(currentUser)
         signaler.addEventListener('webRTCSignal', async ({ from, payload }) => {

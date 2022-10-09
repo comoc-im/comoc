@@ -2,7 +2,8 @@ import { EventHub } from '@/network/signaler/eventHub'
 import { SessionUser } from '@/store/session'
 import { Address } from '@comoc/id'
 import { getSignaler, Signaler } from '@/network/signaler'
-import { todo } from '@/utils/logger'
+import { debug, todo } from '@/utils/logger'
+import { P2pCrypto } from '@/network/p2p/crypto'
 
 const stunServers = [
     'stun:stun1.l.google.com:19302',
@@ -33,7 +34,7 @@ function amIPolite(me: Address, remote: Address): boolean {
     return [me, remote].sort().pop() === remote
 }
 
-type EventMap = { message: string }
+type EventMap = { message: string; close: undefined }
 
 export class P2pConnection extends EventHub<EventMap> {
     polite: boolean
@@ -41,23 +42,40 @@ export class P2pConnection extends EventHub<EventMap> {
     ignoreOffer = false
     pc: RTCPeerConnection
     dc: RTCDataChannel | null = null
+    private readonly crypto: P2pCrypto
 
-    constructor(currentUser: SessionUser, remoteUserAddress: Address) {
+    constructor(
+        currentUser: SessionUser,
+        remoteUserAddress: Address,
+        crypto: P2pCrypto
+    ) {
         super()
         this.polite = amIPolite(currentUser.address, remoteUserAddress)
         this.pc = new RTCPeerConnection(config)
-        const signaler = getSignaler(currentUser)
-        console.debug('connecting', remoteUserAddress)
-        this.connect(signaler, currentUser.address, remoteUserAddress)
+        this.crypto = crypto
+        this.init(currentUser, remoteUserAddress)
+    }
 
-        console.debug({ polite: this.polite })
+    private async init(currentUser: SessionUser, remoteUserAddress: Address) {
+        const signaler = getSignaler(currentUser)
+        debug('send ecdh public key', remoteUserAddress)
+        const ecdhPublicKey = await this.crypto.getEcdhPublicKey()
+        await signaler.send(remoteUserAddress, {
+            ecdhPublicKey,
+        })
+        debug('connecting', remoteUserAddress)
+        this.connect(signaler, currentUser.address, remoteUserAddress)
+        this.initDataChannel()
+    }
+
+    private initDataChannel() {
+        debug({ polite: this.polite })
         if (this.polite) {
             this.pc.ondatachannel = (evt) => {
                 const dc = evt.channel
                 this.dc = dc
                 dc.onmessage = (event) => {
-                    console.log('received: ' + event.data)
-                    this.dispatchEvent('message', event.data)
+                    this.onMessage(event.data)
                 }
                 dc.onopen = function () {
                     console.log('datachannel open')
@@ -65,17 +83,15 @@ export class P2pConnection extends EventHub<EventMap> {
 
                 dc.onclose = () => {
                     console.warn('datachannel close')
-                    // TODO
-                    todo('reconnect webrtc data channel')
+                    this.dispatchEvent('close', undefined)
                 }
             }
         } else {
             const dc = this.pc.createDataChannel('my channel')
-            // dc.binaryType = 'arraybuffer'
+            dc.binaryType = 'arraybuffer'
             this.dc = dc
             dc.onmessage = (event) => {
-                console.log('received: ' + event.data)
-                this.dispatchEvent('message', event.data)
+                this.onMessage(event.data)
             }
 
             dc.onopen = function () {
@@ -84,21 +100,34 @@ export class P2pConnection extends EventHub<EventMap> {
 
             dc.onclose = () => {
                 console.warn('datachannel close')
-                // TODO
-                todo('reconnect webrtc data channel')
+                this.dispatchEvent('close', undefined)
             }
         }
+    }
+
+    private async onMessage(payload: ArrayBuffer): Promise<void> {
+        const data = await this.crypto.decrypt(payload)
+        console.log('received: ' + data)
+        this.dispatchEvent('message', data)
     }
 
     public async digestSignal(
         signaler: Signaler,
         currentUser: SessionUser,
         from: Address,
+        ecdhPublicKey?: string,
         description?: RTCSessionDescription | null,
         candidate?: RTCIceCandidate | null
     ) {
         try {
-            if (description) {
+            if (ecdhPublicKey) {
+                const changed = await this.crypto.deriveKey(ecdhPublicKey)
+                if (changed) {
+                    await signaler.send(from, {
+                        ecdhPublicKey: await this.crypto.getEcdhPublicKey(),
+                    })
+                }
+            } else if (description) {
                 const offerCollision =
                     description.type == 'offer' &&
                     (this.makingOffer || this.pc.signalingState != 'stable')
@@ -136,7 +165,7 @@ export class P2pConnection extends EventHub<EventMap> {
         remoteUserAddress: Address
     ) {
         this.pc.onnegotiationneeded = async () => {
-            console.debug('onnegotiationneeded')
+            debug('onnegotiationneeded')
             try {
                 this.makingOffer = true
                 await this.pc.setLocalDescription()
@@ -151,7 +180,7 @@ export class P2pConnection extends EventHub<EventMap> {
             }
         }
         this.pc.onicecandidate = ({ candidate }) => {
-            console.debug('onicecandidate')
+            debug('onicecandidate')
             signaler.send(remoteUserAddress, {
                 candidate,
                 from: currentUserAdd,
@@ -164,7 +193,9 @@ export class P2pConnection extends EventHub<EventMap> {
     }
 
     public send(data: string) {
-        this.dc?.send(data)
+        this.crypto.encrypt(data).then((encrypted) => {
+            this.dc?.send(encrypted)
+        })
     }
 
     public destroy() {

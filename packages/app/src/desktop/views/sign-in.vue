@@ -102,7 +102,7 @@
 import { ref, watch } from 'vue'
 import { debug, error, todo, warn } from '@/utils/logger'
 import { createId, CryptoID, importId } from '@comoc/id'
-import { importByFile, unwrapPrivateKey, wrapPrivateKey } from '@/id'
+import { importByFile, unwrapPrivateKey, wrapPrivateKey } from '@/utils/id'
 import { useSessionStore } from '@/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser, User, UserModel } from '@/db/user'

@@ -4,12 +4,12 @@ import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler } from '@/network/signaler'
 import { Address, fromAddress, importId, toAddress } from '@comoc/id'
-import { stringify } from '@/id'
-import { warn } from '@/utils/logger'
+import { error, warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
 import { copy } from '@/utils/clipboard'
 import { p2pNetwork } from '@/network/p2p'
 import { MessageModel } from '@/db/message'
+import { exportKeyPair, stringify } from '@comoc/id'
 
 export type SessionUser = {
     username: string
@@ -37,15 +37,17 @@ export const useSessionStore = defineStore('session', {
     actions: {
         async signIn(user: SessionUser): Promise<void> {
             this.currentUser = user
+            const exported = await exportKeyPair(user)
+            const id = stringify(
+                exported.exportPrivateKey,
+                exported.exportPublicKey
+            )
             window.sessionStorage.setItem(
                 LocalStorageKeys.CurrentUser,
                 JSON.stringify({
                     username: user.username,
                     passwordHash: user.passwordHash,
-                    id: await stringify({
-                        privateKey: user.privateKey,
-                        publicKey: user.publicKey,
-                    }),
+                    id: id,
                 })
             )
             p2pNetwork.join(user)
@@ -142,6 +144,7 @@ export async function recoverSessionState(): Promise<void> {
                 window.sessionStorage.removeItem(LocalStorageKeys.CurrentUser)
             }
         } catch (err) {
+            error(err)
             window.sessionStorage.removeItem(LocalStorageKeys.CurrentUser)
         }
     }

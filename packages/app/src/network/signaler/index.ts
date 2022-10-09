@@ -7,8 +7,11 @@ import { bufferToJson, jsonToBuffer } from '@/utils/buffer'
 import { SessionUser } from '@/store/session'
 
 type EventMap = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    webRTCSignal: { payload: unknown; from: Address; to: Address }
+    webRTCSignal: {
+        payload: Record<string, unknown>
+        from: Address
+        to: Address
+    }
 }
 
 export class Signaler extends EventHub<EventMap> {
@@ -22,7 +25,20 @@ export class Signaler extends EventHub<EventMap> {
         this.listenMessage()
     }
 
-    private async fromSignal(s: Signal) {
+    public async send(to: Address, data: unknown): Promise<void> {
+        const webSocket = await this.webSocketReady
+        const s = await this.toSignal(to, data)
+        // debug('websocket sending', data)
+
+        webSocket.send(s.encode())
+    }
+
+    public destroy(): void {
+        this.clearEventListeners()
+        // TODO close websocket
+    }
+
+    private async parseSignal(s: Signal) {
         const result = JSON.parse(await bufferToJson(s.payload))
         const source = Object.assign({}, result)
         delete source._s
@@ -49,25 +65,12 @@ export class Signaler extends EventHub<EventMap> {
         return { payload: source, to: s.to, from: s.from }
     }
 
-    public async send(to: Address, data: unknown): Promise<void> {
-        const webSocket = await this.webSocketReady
-        const s = await this.toSignal(to, data)
-        // debug('websocket sending', data)
-
-        webSocket.send(s.encode())
-    }
-
-    public destroy(): void {
-        this.clearEventListeners()
-        // TODO close websocket
-    }
-
     private async listenMessage(): Promise<void> {
         const webSocket = await this.webSocketReady
         const listener = async (msg: MessageEvent<ArrayBuffer>) => {
             try {
                 const signal = Signal.decode(new Uint8Array(msg.data))
-                const sm = await this.fromSignal(signal)
+                const sm = await this.parseSignal(signal)
                 this.dispatchEvent('webRTCSignal', sm)
             } catch (err) {
                 error(`unrecognized websocket message`, err, msg.data)

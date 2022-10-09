@@ -70,11 +70,10 @@
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
-import { stringify } from '@/id'
 import { useSessionStore } from '@/store'
 import { notice } from '@/utils/notification'
 import { Contact } from '@/db/contact'
-import { Address } from '@comoc/id'
+import { Address, exportKeyPair, stringify } from '@comoc/id'
 import { verifyPassword } from '@/db/user/crypto'
 import { download } from '@/utils/file'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -159,12 +158,9 @@ async function exportID(): Promise<void> {
         notice('error', 'password wrong')
         return
     }
-
+    const exported = await exportKeyPair(currentUser)
     download(
-        await stringify({
-            publicKey: currentUser.publicKey,
-            privateKey: currentUser.privateKey,
-        }),
+        stringify(exported.exportPrivateKey, exported.exportPublicKey),
         `${currentUser.username}.id`
     )
 }
@@ -191,6 +187,8 @@ async function selectContact(contact: Contact) {
         msgList.value = messages
         nextTick(scrollToNewMessage)
     })
+
+    p2pNetwork.getP2PConnection(currentUser, contact.address)
 }
 
 async function send() {
@@ -216,7 +214,7 @@ async function send() {
 
     msgList.value.push(message)
     inputText.value = ''
-    p2pNetwork.send(currentContact.value.address, message)
+    await p2pNetwork.send(currentContact.value.address, message)
     await msg.save()
     scrollToNewMessage()
 }

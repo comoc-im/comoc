@@ -1,9 +1,11 @@
 export { CryptoID, createId, importId } from './id'
 export { verify, sign } from './usage'
-export { stringify } from './serialize'
+export { exportKeyPair, stringify } from './serialize'
 export {
     addressToBytes,
     bytesToAddress,
+    hexToBytes,
+    bytesToHex,
     toAddress,
     fromAddress,
 } from './address'

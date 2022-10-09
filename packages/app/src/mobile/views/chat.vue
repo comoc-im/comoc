@@ -126,7 +126,7 @@ async function send() {
 
     msgList.value.push(message)
     inputText.value = ''
-    p2pNetwork.send(contact.address, message)
+    await p2pNetwork.send(contact.address, message)
     await msg.save()
     scrollToNewMessage()
 }

@@ -7,9 +7,6 @@ import './registerServiceWorker'
 import { isMobile } from '@/utils/ua'
 import { router } from '@/router'
 
-const mobile = import('@/mobile')
-const desktop = import('@/desktop')
-
 const app = createApp(RouterView)
 
 // Vue 开发选项
@@ -33,10 +30,10 @@ if (process.env.NODE_ENV !== 'development') {
     app.use(createPinia())
     app.use(router)
     if (isMobile()) {
-        const { init } = await mobile
+        const { init } = await import('@/mobile')
         init(app)
     } else {
-        const { init } = await desktop
+        const { init } = await import('@/desktop')
         init(app)
     }
 

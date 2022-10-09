@@ -1,16 +1,4 @@
-import { CryptoID, importId } from '@comoc/id'
-
-export interface ComocID {
-    publicKey: CryptoKey
-    privateKey: CryptoKey
-}
-
-export async function stringify(id: ComocID): Promise<string> {
-    return JSON.stringify({
-        privateKey: await window.crypto.subtle.exportKey('jwk', id.privateKey),
-        publicKey: await window.crypto.subtle.exportKey('jwk', id.publicKey),
-    })
-}
+import { bytesToHex, CryptoID, importId } from '@comoc/id'
 
 export function importByFile(): Promise<CryptoID | null> {
     const input = document.createElement('input')
@@ -116,4 +104,14 @@ export async function unwrapPrivateKey(
         true, // extractability of key to unwrap
         ['sign'] // key usages for key to unwrap
     )
+}
+
+export async function isSameKey(a: CryptoKey, b: CryptoKey): Promise<boolean> {
+    const rawA = await window.crypto.subtle.exportKey('raw', a)
+    const bytesA = new Uint8Array(rawA)
+    const hexA = bytesToHex(bytesA)
+    const rawB = await window.crypto.subtle.exportKey('raw', b)
+    const bytesB = new Uint8Array(rawB)
+    const hexB = bytesToHex(bytesB)
+    return hexA === hexB
 }

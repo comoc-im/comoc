@@ -1,5 +1,5 @@
 import { SessionUser, useSessionStore } from '@/store/session'
-import { Address } from '@comoc/id'
+import { Address } from '@comoc-im/id'
 import { getSignaler } from '@/network/signaler'
 import { EventHub } from '@/network/signaler/eventHub'
 import { error, info } from '@/utils/logger'

@@ -1,4 +1,4 @@
-import { bytesToHex, CryptoID, importId } from '@comoc/id'
+import { bytesToHex, CryptoID, importId } from '@comoc-im/id'
 
 export function importByFile(): Promise<CryptoID | null> {
     const input = document.createElement('input')

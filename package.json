@@ -1,5 +1,5 @@
 {
-  "name": "@comoc/monorepo",
+  "name": "@comoc-im/monorepo",
   "version": "0.1.0",
   "private": true,
   "description": "Comoc IM",
@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^4.3.0",
-    "@comoc/id": "^0.0.6",
+    "@comoc-im/id": "^0.0.6",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.8.3",
     "@types/randomcolor": "^0.5.6",

@@ -3,13 +3,13 @@ import { LocalStorageKeys } from '@/constants'
 import { router } from '@/router'
 import { RouteName } from '@/router/routes'
 import { closeSignaler } from '@/network/signaler'
-import { Address, fromAddress, importId, toAddress } from '@comoc/id'
+import { Address, fromAddress, importId, toAddress } from '@comoc-im/id'
 import { error, warn } from '@/utils/logger'
 import { Contact, ContactModel } from '@/db/contact'
 import { copy } from '@/utils/clipboard'
 import { p2pNetwork } from '@/network/p2p'
 import { MessageModel } from '@/db/message'
-import { exportKeyPair, stringify } from '@comoc/id'
+import { exportKeyPair, stringify } from '@comoc-im/id'
 
 export type SessionUser = {
     username: string

@@ -1,6 +1,6 @@
 import { concatArrayBuffers } from '@/utils/buffer'
 import { debug } from '@/utils/logger'
-import { bytesToHex, hexToBytes } from '@comoc/id'
+import { bytesToHex, hexToBytes } from '@comoc-im/id'
 import { isSameKey } from '@/utils/id'
 
 export class P2pCrypto {

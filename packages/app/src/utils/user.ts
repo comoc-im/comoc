@@ -1,4 +1,4 @@
-import { Address } from '@comoc/id'
+import { Address } from '@comoc-im/id'
 import randomColor from 'randomcolor'
 
 export function getUserColor(userAddress: Address): string {

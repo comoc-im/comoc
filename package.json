@@ -10,10 +10,10 @@
   "homepage": "https://github.com/comoc-im/comoc",
   "bugs": "https://github.com/comoc-im/comoc/issues",
   "scripts": {
-    "dev": "pnpm -F @comoc/app dev",
-    "dev-preview": "pnpm -F @comoc/app dev-preview",
-    "build-web": "pnpm -F @comoc/app build-web",
-    "build": "pnpm -F @comoc/app build"
+    "dev": "pnpm -F @comoc-im/app dev",
+    "dev-preview": "pnpm -F @comoc-im/app dev-preview",
+    "build-web": "pnpm -F @comoc-im/app build-web",
+    "build": "pnpm -F @comoc-im/app build"
   },
   "build": {
     "directories": {

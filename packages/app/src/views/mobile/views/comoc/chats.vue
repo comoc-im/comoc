@@ -12,11 +12,11 @@
 </template>
 <script lang="ts" setup>
 import { Message, MessageModel } from '@/db/message'
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { ref } from 'vue'
 import { toDateTimeStr } from '@/utils/date'
-import { router } from '@/router'
-import { RouteName } from '@/router/routes'
+import { router } from '@/views/common/router'
+import { RouteName } from '@/views/common/router/routes'
 
 const store = useSessionStore()
 const chats = ref<Message[]>([])

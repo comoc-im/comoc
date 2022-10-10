@@ -24,7 +24,7 @@
     </van-list>
 </template>
 <script lang="ts" setup>
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { ref } from 'vue'
 import { Toast } from 'vant'
 

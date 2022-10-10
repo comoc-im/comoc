@@ -1,6 +1,6 @@
 import { RouteName, routes } from './routes'
 import { createRouter, createWebHistory } from 'vue-router'
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { warn } from '@/utils/logger'
 
 const router = createRouter({

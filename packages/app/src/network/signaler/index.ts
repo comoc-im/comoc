@@ -4,7 +4,7 @@ import { EventHub } from './eventHub'
 import { createWebSocket } from './websocket'
 import { Address, fromAddress, sign, verify } from '@comoc-im/id'
 import { bufferToJson, jsonToBuffer } from '@/utils/buffer'
-import { SessionUser } from '@/store/session'
+import { SessionUser } from '@/views/common/store/session'
 
 type EventMap = {
     webRTCSignal: {

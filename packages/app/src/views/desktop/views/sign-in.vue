@@ -103,7 +103,7 @@ import { ref, watch } from 'vue'
 import { debug, error, todo, warn } from '@/utils/logger'
 import { createId, CryptoID, importId } from '@comoc-im/id'
 import { importByFile, unwrapPrivateKey, wrapPrivateKey } from '@/utils/id'
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { SessionStorageKeys } from '@/constants'
 import { createUser, User, UserModel } from '@/db/user'
 import { notice } from '@/utils/notification'
@@ -111,8 +111,7 @@ import { download } from '@/utils/file'
 import { verifyPassword } from '@/db/user/crypto'
 import { ContactModel } from '@/db/contact'
 import { MessageModel } from '@/db/message'
-import { Dialog } from 'vant'
-import { cPrompt } from '@/mobile/components'
+import { ElMessageBox } from 'element-plus'
 
 const usernameCache =
     window.sessionStorage.getItem(SessionStorageKeys.Username) || ''
@@ -140,7 +139,9 @@ async function signInWithPreviousId() {
     }
     const user = selectedUser.value
     debug('sign in with previous id', user)
-    const passwordInput = await cPrompt('', `Password`, 'password')
+    const { value: passwordInput } = await ElMessageBox.prompt(`Password`, '', {
+        inputType: 'password',
+    })
     const password = passwordInput?.trim()
     if (!password) {
         notice('warn', 'password necessary')
@@ -168,9 +169,9 @@ async function deleteLocalUser() {
         return
     }
     const user = selectedUser.value
-    const sure = await Dialog.confirm({
-        message: 'Delete local user will remove all local data, you sure?',
-    })
+    const sure = await ElMessageBox.confirm(
+        'Delete local user will remove all local data, you sure?'
+    )
     if (!sure) {
         return
     }

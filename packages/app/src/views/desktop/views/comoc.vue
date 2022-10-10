@@ -70,7 +70,7 @@
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { Message, MessageModel, MessageType, newMessageId } from '@/db/message'
 import { debug, error, warn } from '@/utils/logger'
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { notice } from '@/utils/notification'
 import { Contact } from '@/db/contact'
 import { Address, exportKeyPair, stringify } from '@comoc-im/id'
@@ -220,7 +220,7 @@ async function send() {
 }
 </script>
 <style lang="scss" scoped>
-@import '../../styles/base/variable';
+@import '../../common/styles/base/variable';
 
 .comoc-web {
     display: flex;

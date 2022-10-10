@@ -25,13 +25,13 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { computed, ref } from 'vue'
-import { cPrompt } from '@/mobile/components'
+import { cPrompt } from '@/views/mobile/components'
 import { Notify, Toast } from 'vant'
 import { Contact } from '@/db/contact'
-import { router } from '@/router'
-import { RouteName } from '@/router/routes'
+import { router } from '@/views/common/router'
+import { RouteName } from '@/views/common/router/routes'
 
 const store = useSessionStore()
 const keyword = ref('')

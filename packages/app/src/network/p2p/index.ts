@@ -1,4 +1,4 @@
-import { SessionUser, useSessionStore } from '@/store/session'
+import { SessionUser, useSessionStore } from '@/views/common/store/session'
 import { Address } from '@comoc-im/id'
 import { getSignaler } from '@/network/signaler'
 import { EventHub } from '@/network/signaler/eventHub'

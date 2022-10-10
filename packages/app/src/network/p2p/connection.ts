@@ -1,5 +1,5 @@
 import { EventHub } from '@/network/signaler/eventHub'
-import { SessionUser } from '@/store/session'
+import { SessionUser } from '@/views/common/store/session'
 import { Address } from '@comoc-im/id'
 import { getSignaler, Signaler } from '@/network/signaler'
 import { debug, todo } from '@/utils/logger'

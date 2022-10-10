@@ -24,10 +24,10 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useSessionStore } from '@/store'
-import Contacts from './comoc/contacts.vue'
-import Preference from '@/mobile/views/comoc/preference.vue'
-import Chats from '@/mobile/views/comoc/chats.vue'
+import { useSessionStore } from '@/views/common/store'
+import Contacts from 'src/views/mobile/views/comoc/contacts.vue'
+import Preference from '@/views/mobile/views/comoc/preference.vue'
+import Chats from '@/views/mobile/views/comoc/chats.vue'
 
 const active = ref(0)
 const store = useSessionStore()
@@ -72,7 +72,7 @@ store.refreshContacts()
 // }
 </script>
 <style lang="scss" scoped>
-@import '../../styles/base/variable';
+@import '../../common/styles/base/variable';
 
 .comoc-web {
     background-color: lightgrey;

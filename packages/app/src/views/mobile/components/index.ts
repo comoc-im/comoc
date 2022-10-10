@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import { Cell, CellGroup, Dialog, Field, FieldType } from 'vant'
-import Prompt from '@/mobile/components/c-prompt.vue'
+import Prompt from '@/views/mobile/components/c-prompt.vue'
 
 export function cPrompt(
     message: string,

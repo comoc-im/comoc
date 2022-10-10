@@ -48,7 +48,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { useSessionStore } from '@/store'
+import { useSessionStore } from '@/views/common/store'
 import { useRoute } from 'vue-router'
 import { notice } from '@/utils/notification'
 import { nextTick, onBeforeUnmount, ref } from 'vue'
@@ -132,7 +132,7 @@ async function send() {
 }
 </script>
 <style scoped lang="scss">
-@import '../../styles/base/variable';
+@import '../../common/styles/base/variable';
 
 .chat {
     background-color: #f1f1f1;

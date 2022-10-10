@@ -1,7 +1,6 @@
 {
-  "name": "@comoc-im/monorepo",
+  "name": "@comoc-im/app",
   "version": "0.1.0",
-  "private": true,
   "description": "Comoc IM",
   "main": "main.js",
   "repository": "git@github.com:comoc-im/comoc.git",
@@ -10,10 +9,11 @@
   "homepage": "https://github.com/comoc-im/comoc",
   "bugs": "https://github.com/comoc-im/comoc/issues",
   "scripts": {
-    "dev": "pnpm -F @comoc-im/app dev",
-    "dev-preview": "pnpm -F @comoc-im/app dev-preview",
-    "build-web": "pnpm -F @comoc-im/app build-web",
-    "build": "pnpm -F @comoc-im/app build"
+    "dev": "vite",
+    "dev-preview": "export NODE_ENV=development && electron .",
+    "build-web": "vue-tsc && vite build",
+    "build": "vue-tsc && vite build && electron-builder -mwl",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "directories": {
@@ -45,26 +45,26 @@
     }
   },
   "dependencies": {
-    "@capacitor/android": "^4.3.0",
-    "@capacitor/core": "^4.3.0",
-    "@capacitor/ios": "^4.3.0",
+    "@capacitor/android": "^4.0.0",
+    "@capacitor/core": "^4.0.0",
+    "@capacitor/ios": "^4.0.0",
     "@comoc-im/message": "^0.1.8",
-    "@element-plus/icons-vue": "^2.0.9",
+    "@element-plus/icons-vue": "^2.0.10",
     "@types/uuid": "^8.3.4",
     "element-plus": "^2.2.17",
     "hash-wasm": "^4.9.0",
-    "pinia": "^2.0.22",
+    "pinia": "^2.0.23",
     "randomcolor": "^0.6.2",
     "register-service-worker": "^1.7.1",
     "smoothscroll-polyfill": "^0.4.4",
     "uuid": "^9.0.0",
-    "vant": "3.6.3",
+    "vant": "3.6.4",
     "vue": "^3.2.40",
     "vue-router": "^4.1.5"
   },
   "devDependencies": {
-    "@capacitor/cli": "^4.3.0",
-    "@comoc-im/id": "^0.0.6",
+    "@capacitor/cli": "^4.0.0",
+    "@comoc-im/id": "^0.0.7",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.8.3",
     "@types/randomcolor": "^0.5.6",
@@ -74,7 +74,9 @@
     "@vitejs/plugin-vue": "^3.1.2",
     "@vue/compiler-sfc": "^3.2.40",
     "@vue/eslint-config-typescript": "^11.0.2",
-    "eslint": "^8.24.0",
+    "electron": "^21.1.0",
+    "electron-builder": "^23.6.0",
+    "eslint": "^8.25.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^9.6.0",
@@ -85,9 +87,9 @@
     "typescript": "^4.8.4",
     "unplugin-vue-components": "^0.22.8",
     "vconsole": "^3.14.7",
-    "vite": "^3.1.6",
+    "vite": "^3.1.7",
     "vite-plugin-pwa": "^0.13.1",
-    "vue-tsc": "^0.40.13",
+    "vue-tsc": "^1.0.3",
     "workbox-build": "^6.5.4",
     "workbox-window": "^6.5.4"
   },

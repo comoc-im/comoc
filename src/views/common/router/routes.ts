@@ -5,6 +5,8 @@ export enum RouteName {
     SignIn = 'signIn',
     Comoc = 'comoc',
     Chat = 'chat',
+    Contact = 'contact',
+    Preference = 'preference',
 }
 export const routes: RouteRecordRaw[] = isMobile()
     ? [
@@ -38,6 +40,25 @@ export const routes: RouteRecordRaw[] = isMobile()
               path: '/comoc',
               name: RouteName.Comoc,
               component: () => import('@/views/desktop/views/comoc.vue'),
+              children: [
+                  {
+                      name: RouteName.Chat,
+                      path: 'chat/:address?',
+                      component: () => import('@/views/desktop/views/chat.vue'),
+                  },
+                  {
+                      name: RouteName.Contact,
+                      path: 'contact',
+                      component: () =>
+                          import('@/views/desktop/views/contact.vue'),
+                  },
+                  {
+                      name: RouteName.Preference,
+                      path: 'preference',
+                      component: () =>
+                          import('@/views/desktop/views/preference.vue'),
+                  },
+              ],
           },
           {
               path: '/:pathMatch(.*)*',

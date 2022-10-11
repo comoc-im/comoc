@@ -27,6 +27,7 @@ if (process.env.NODE_ENV !== 'development') {
  */
 export async function startApp() {
     app.use(createPinia())
+    await recoverSessionState()
     app.use(router)
 
     if (isMobile()) {
@@ -38,5 +39,4 @@ export async function startApp() {
     }
 
     app.mount('#app')
-    await recoverSessionState()
 }

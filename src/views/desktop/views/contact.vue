@@ -10,9 +10,9 @@
         >
             {{ contact.username }}
         </div>
-        <el-button type="success" round :icon="Plus" @click="addContact"
-            >Export</el-button
-        >
+        <el-button type="success" round :icon="Plus" @click="addContact">
+            Add Contact
+        </el-button>
     </div>
 </template>
 <script lang="ts" setup>
